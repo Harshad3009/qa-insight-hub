@@ -78,10 +78,10 @@ export function RunsTable({ data, isLoading }: RunsTableProps) {
                     {run.totalTests}
                   </TableCell>
                   <TableCell className="text-center">
-                    <span className="font-mono text-success">{run.passed}</span>
+                    <span className="font-mono text-success">{run.passCount}</span>
                   </TableCell>
                   <TableCell className="text-center">
-                    <span className="font-mono text-destructive">{run.failed}</span>
+                    <span className="font-mono text-destructive">{run.failCount}</span>
                   </TableCell>
                   <TableCell>
                     <Badge
