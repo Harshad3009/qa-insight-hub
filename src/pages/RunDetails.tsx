@@ -122,10 +122,12 @@ The overall test suite is healthy, with isolated failures in external integratio
   };
 
   const filteredTests = runDetails?.testCases.filter((test) => {
+    const tName = test.name || "";
+    const tStatus = test.status || "UNKNOWN";
     const matchesSearch =
-      test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       test.className.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || test.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || tStatus === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
 
