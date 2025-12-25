@@ -29,8 +29,8 @@ const mockRunDetails: RunDetailsType = {
   id: 1,
   executionDate: '2024-01-07T14:30:00Z',
   totalTests: 83,
-  passed: 78,
-  failed: 5,
+  passCount: 78,
+  failCount: 5,
   skipped: 0,
   status: 'PASSED',
   aiAnalysis: null,
@@ -218,11 +218,11 @@ The overall test suite is healthy, with isolated failures in external integratio
           </Card>
           <Card className="p-4 bg-success/5 border-success/20">
             <p className="text-sm text-muted-foreground">Passed</p>
-            <p className="text-2xl font-bold font-mono text-success">{runDetails.passed}</p>
+            <p className="text-2xl font-bold font-mono text-success">{runDetails.passCount}</p>
           </Card>
           <Card className="p-4 bg-destructive/5 border-destructive/20">
             <p className="text-sm text-muted-foreground">Failed</p>
-            <p className="text-2xl font-bold font-mono text-destructive">{runDetails.failed}</p>
+            <p className="text-2xl font-bold font-mono text-destructive">{runDetails.failCount}</p>
           </Card>
           <Card className="p-4 bg-warning/5 border-warning/20">
             <p className="text-sm text-muted-foreground">Skipped</p>
