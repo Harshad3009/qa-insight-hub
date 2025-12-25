@@ -23,7 +23,7 @@ export interface TopFailure {
 export interface FlakyTest {
   testName: string;
   className: string;
-  flakyScore: number;
+  flakinessScore: number;
   passCount: number;
   failCount: number;
 }

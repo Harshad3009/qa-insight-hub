@@ -37,8 +37,8 @@ const mockTopFailures: TopFailure[] = [
 ];
 
 const mockFlakyTests: FlakyTest[] = [
-  { testName: 'testAsyncDataLoad', className: 'DataLoaderTest', flakyScore: 0.45, passCount: 11, failCount: 9 },
-  { testName: 'testWebSocketConnection', className: 'WebSocketTest', flakyScore: 0.38, passCount: 13, failCount: 7 },
+  { testName: 'testAsyncDataLoad', className: 'DataLoaderTest', flakinessScore: 0.45, passCount: 11, failCount: 9 },
+  { testName: 'testWebSocketConnection', className: 'WebSocketTest', flakinessScore: 0.38, passCount: 13, failCount: 7 },
 ];
 
 const mockRuns: TestRun[] = [

@@ -30,12 +30,12 @@ interface ManagedFlakyTest extends FlakyTest {
 }
 
 const mockFlakyTests: FlakyTest[] = [
-  { testName: 'testUserLogin', className: 'AuthenticationTest', flakyScore: 0.45, passCount: 55, failCount: 45 },
-  { testName: 'testPaymentProcessing', className: 'PaymentTest', flakyScore: 0.30, passCount: 70, failCount: 30 },
-  { testName: 'testDatabaseConnection', className: 'DatabaseTest', flakyScore: 0.25, passCount: 75, failCount: 25 },
-  { testName: 'testAPITimeout', className: 'IntegrationTest', flakyScore: 0.20, passCount: 80, failCount: 20 },
-  { testName: 'testFileUpload', className: 'FileHandlingTest', flakyScore: 0.15, passCount: 85, failCount: 15 },
-  { testName: 'testCacheInvalidation', className: 'CacheTest', flakyScore: 0.12, passCount: 88, failCount: 12 },
+  { testName: 'testUserLogin', className: 'AuthenticationTest', flakinessScore: 0.45, passCount: 55, failCount: 45 },
+  { testName: 'testPaymentProcessing', className: 'PaymentTest', flakinessScore: 0.30, passCount: 70, failCount: 30 },
+  { testName: 'testDatabaseConnection', className: 'DatabaseTest', flakinessScore: 0.25, passCount: 75, failCount: 25 },
+  { testName: 'testAPITimeout', className: 'IntegrationTest', flakinessScore: 0.20, passCount: 80, failCount: 20 },
+  { testName: 'testFileUpload', className: 'FileHandlingTest', flakinessScore: 0.15, passCount: 85, failCount: 15 },
+  { testName: 'testCacheInvalidation', className: 'CacheTest', flakinessScore: 0.12, passCount: 88, failCount: 12 },
 ];
 
 const statusConfig: Record<ResolutionStatus, { label: string; color: string; icon: typeof CheckCircle2 }> = {
@@ -273,14 +273,14 @@ export default function FlakyTests() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-foreground truncate">{test.testName}</h3>
+                            <h3 className="font-semibold text-foreground truncate break-all">{test.testName}</h3>
                             {test.acknowledged && (
                               <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 text-xs">
                                 Acknowledged
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{test.className}</p>
+                          <p className="text-sm text-muted-foreground break-all">{test.className}</p>
                         </div>
                       </div>
 
@@ -289,14 +289,14 @@ export default function FlakyTests() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs text-muted-foreground">Flaky Score</span>
-                            <span className={`text-sm font-semibold ${getFlakyScoreColor(test.flakyScore)}`}>
-                              {(test.flakyScore * 100).toFixed(0)}%
+                            <span className={`text-sm font-semibold ${getFlakyScoreColor(test.flakinessScore)}`}>
+                              {(test.flakinessScore * 100).toFixed(0)}%
                             </span>
                           </div>
                           <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div 
-                              className={`h-full rounded-full transition-all ${getFlakyScoreBarColor(test.flakyScore)}`}
-                              style={{ width: `${test.flakyScore * 100}%` }}
+                              className={`h-full rounded-full transition-all ${getFlakyScoreBarColor(test.flakinessScore)}`}
+                              style={{ width: `${test.flakinessScore * 100}%` }}
                             />
                           </div>
                         </div>
