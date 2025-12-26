@@ -81,7 +81,7 @@ export const getRunDetails = async (id: number): Promise<RunDetails> => {
 };
 
 export const analyzeRun = async (id: number): Promise<{ analysis: string }> => {
-  const response = await api.post(`/api/runs/${id}/analyze`);
+  const response = await api.post(`/api/runs/${id}/analyze-run`);
   return response.data;
 };
 

@@ -290,13 +290,13 @@ export default function FlakyTests() {
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs text-muted-foreground">Flaky Score</span>
                             <span className={`text-sm font-semibold ${getFlakyScoreColor(test.flakinessScore)}`}>
-                              {(test.flakinessScore * 100).toFixed(0)}%
+                              {(test.flakinessScore).toFixed(0)}%
                             </span>
                           </div>
                           <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all ${getFlakyScoreBarColor(test.flakinessScore)}`}
-                              style={{ width: `${test.flakinessScore * 100}%` }}
+                              style={{ width: `${test.flakinessScore}%` }}
                             />
                           </div>
                         </div>
