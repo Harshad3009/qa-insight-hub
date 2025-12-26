@@ -31,7 +31,7 @@ const mockRunDetails: RunDetailsType = {
   totalTests: 83,
   passCount: 78,
   failCount: 5,
-  skipped: 0,
+  skipCount: 0,
   status: 'PASSED',
   aiAnalysis: null,
   testCases: [
@@ -226,7 +226,7 @@ The overall test suite is healthy, with isolated failures in external integratio
           </Card>
           <Card className="p-4 bg-warning/5 border-warning/20">
             <p className="text-sm text-muted-foreground">Skipped</p>
-            <p className="text-2xl font-bold font-mono text-warning">{runDetails.skipped}</p>
+            <p className="text-2xl font-bold font-mono text-warning">{runDetails.skipCount}</p>
           </Card>
         </div>
 

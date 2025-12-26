@@ -42,11 +42,11 @@ const mockFlakyTests: FlakyTest[] = [
 ];
 
 const mockRuns: TestRun[] = [
-  { id: 1, executionDate: '2024-01-07T14:30:00Z', totalTests: 83, passCount: 78, failCount: 5, skipped: 0, status: 'PASSED' },
-  { id: 2, executionDate: '2024-01-06T10:15:00Z', totalTests: 85, passCount: 74, failCount: 11, skipped: 0, status: 'FAILED' },
-  { id: 3, executionDate: '2024-01-05T16:45:00Z', totalTests: 75, passCount: 69, failCount: 6, skipped: 0, status: 'PASSED' },
-  { id: 4, executionDate: '2024-01-04T09:00:00Z', totalTests: 80, passCount: 72, failCount: 8, skipped: 0, status: 'PASSED' },
-  { id: 5, executionDate: '2024-01-03T11:30:00Z', totalTests: 83, passCount: 68, failCount: 15, skipped: 0, status: 'FAILED' },
+  { id: 1, executionDate: '2024-01-07T14:30:00Z', totalTests: 83, passCount: 78, failCount: 5, skipCount: 0, status: 'PASSED' },
+  { id: 2, executionDate: '2024-01-06T10:15:00Z', totalTests: 85, passCount: 74, failCount: 11, skipCount: 0, status: 'FAILED' },
+  { id: 3, executionDate: '2024-01-05T16:45:00Z', totalTests: 75, passCount: 69, failCount: 6, skipCount: 0, status: 'PASSED' },
+  { id: 4, executionDate: '2024-01-04T09:00:00Z', totalTests: 80, passCount: 72, failCount: 8, skipCount: 0, status: 'PASSED' },
+  { id: 5, executionDate: '2024-01-03T11:30:00Z', totalTests: 83, passCount: 68, failCount: 15, skipCount: 0, status: 'FAILED' },
 ];
 
 export default function Dashboard() {
