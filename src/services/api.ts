@@ -41,7 +41,7 @@ export interface TestRun {
 
 export interface TestCase {
   id: number;
-  name: string;
+  testName: string;
   className: string;
   status: 'PASSED' | 'FAILED' | 'SKIPPED';
   duration: number;

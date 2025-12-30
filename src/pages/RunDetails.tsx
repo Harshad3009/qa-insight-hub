@@ -35,16 +35,16 @@ const mockRunDetails: RunDetailsType = {
   status: 'PASSED',
   aiAnalysis: null,
   testCases: [
-    { id: 1, name: 'testUserLogin', className: 'AuthenticationTest', status: 'PASSED', duration: 1.2 },
-    { id: 2, name: 'testUserLogout', className: 'AuthenticationTest', status: 'PASSED', duration: 0.8 },
-    { id: 3, name: 'testPasswordReset', className: 'AuthenticationTest', status: 'FAILED', duration: 2.5, errorMessage: 'Expected email to be sent but no email was received', stackTrace: 'at AuthenticationTest.testPasswordReset(AuthenticationTest.java:45)\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)' },
-    { id: 4, name: 'testCheckoutFlow', className: 'E2ETest', status: 'PASSED', duration: 5.4 },
-    { id: 5, name: 'testPaymentProcessing', className: 'PaymentTest', status: 'FAILED', duration: 3.2, errorMessage: 'Connection timeout to payment gateway', stackTrace: 'at PaymentTest.testPaymentProcessing(PaymentTest.java:78)\nat java.net.SocketInputStream.read(SocketInputStream.java:141)' },
-    { id: 6, name: 'testProductSearch', className: 'SearchTest', status: 'PASSED', duration: 1.8 },
-    { id: 7, name: 'testAddToCart', className: 'CartTest', status: 'PASSED', duration: 1.1 },
-    { id: 8, name: 'testRemoveFromCart', className: 'CartTest', status: 'PASSED', duration: 0.9 },
-    { id: 9, name: 'testInventoryUpdate', className: 'InventoryTest', status: 'SKIPPED', duration: 0 },
-    { id: 10, name: 'testOrderConfirmation', className: 'OrderTest', status: 'PASSED', duration: 2.3 },
+    { id: 1, testName: 'testUserLogin', className: 'AuthenticationTest', status: 'PASSED', duration: 1.2 },
+    { id: 2, testName: 'testUserLogout', className: 'AuthenticationTest', status: 'PASSED', duration: 0.8 },
+    { id: 3, testName: 'testPasswordReset', className: 'AuthenticationTest', status: 'FAILED', duration: 2.5, errorMessage: 'Expected email to be sent but no email was received', stackTrace: 'at AuthenticationTest.testPasswordReset(AuthenticationTest.java:45)\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)' },
+    { id: 4, testName: 'testCheckoutFlow', className: 'E2ETest', status: 'PASSED', duration: 5.4 },
+    { id: 5, testName: 'testPaymentProcessing', className: 'PaymentTest', status: 'FAILED', duration: 3.2, errorMessage: 'Connection timeout to payment gateway', stackTrace: 'at PaymentTest.testPaymentProcessing(PaymentTest.java:78)\nat java.net.SocketInputStream.read(SocketInputStream.java:141)' },
+    { id: 6, testName: 'testProductSearch', className: 'SearchTest', status: 'PASSED', duration: 1.8 },
+    { id: 7, testName: 'testAddToCart', className: 'CartTest', status: 'PASSED', duration: 1.1 },
+    { id: 8, testName: 'testRemoveFromCart', className: 'CartTest', status: 'PASSED', duration: 0.9 },
+    { id: 9, testName: 'testInventoryUpdate', className: 'InventoryTest', status: 'SKIPPED', duration: 0 },
+    { id: 10, testName: 'testOrderConfirmation', className: 'OrderTest', status: 'PASSED', duration: 2.3 },
   ],
 };
 
@@ -122,7 +122,7 @@ The overall test suite is healthy, with isolated failures in external integratio
   };
 
   const filteredTests = runDetails?.testCases.filter((test) => {
-    const tName = test.name || "";
+    const tName = test.testName || "";
     const tStatus = test.status || "UNKNOWN";
     const matchesSearch =
       tName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -268,7 +268,7 @@ The overall test suite is healthy, with isolated failures in external integratio
                       <div className="flex items-center gap-3 text-left">
                         {getStatusIcon(test.status)}
                         <div>
-                          <p className="font-medium text-foreground">{test.name}</p>
+                          <p className="font-medium text-foreground">{test.testName}</p>
                           <p className="text-xs text-muted-foreground">{test.className}</p>
                         </div>
                       </div>
