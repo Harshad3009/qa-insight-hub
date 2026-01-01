@@ -45,8 +45,14 @@ export interface TestCase {
   className: string;
   status: 'PASSED' | 'FAILED' | 'SKIPPED';
   duration: number;
-  errorMessage?: string;
-  stackTrace?: string;
+  testFailure?: TestFailure
+}
+
+export interface TestFailure {
+  failureHash: string;
+  id: number;
+  message: string;
+  stackTrace: string;
 }
 
 export interface RunDetails extends TestRun {

@@ -37,9 +37,9 @@ const mockRunDetails: RunDetailsType = {
   testCases: [
     { id: 1, testName: 'testUserLogin', className: 'AuthenticationTest', status: 'PASSED', duration: 1.2 },
     { id: 2, testName: 'testUserLogout', className: 'AuthenticationTest', status: 'PASSED', duration: 0.8 },
-    { id: 3, testName: 'testPasswordReset', className: 'AuthenticationTest', status: 'FAILED', duration: 2.5, errorMessage: 'Expected email to be sent but no email was received', stackTrace: 'at AuthenticationTest.testPasswordReset(AuthenticationTest.java:45)\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)' },
+    { id: 3, testName: 'testPasswordReset', className: 'AuthenticationTest', status: 'FAILED', duration: 2.5, testFailure:{failureHash: "abcdef123", id: 1, message: 'Expected email to be sent but no email was received', stackTrace: 'at AuthenticationTest.testPasswordReset(AuthenticationTest.java:45)\nat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\nat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)'}},
     { id: 4, testName: 'testCheckoutFlow', className: 'E2ETest', status: 'PASSED', duration: 5.4 },
-    { id: 5, testName: 'testPaymentProcessing', className: 'PaymentTest', status: 'FAILED', duration: 3.2, errorMessage: 'Connection timeout to payment gateway', stackTrace: 'at PaymentTest.testPaymentProcessing(PaymentTest.java:78)\nat java.net.SocketInputStream.read(SocketInputStream.java:141)' },
+    { id: 5, testName: 'testPaymentProcessing', className: 'PaymentTest', status: 'FAILED', duration: 3.2, testFailure:{failureHash: "ghijkl456", id: 1, message: 'Connection timeout to payment gateway', stackTrace: 'at PaymentTest.testPaymentProcessing(PaymentTest.java:78)\nat java.net.SocketInputStream.read(SocketInputStream.java:141)' }},
     { id: 6, testName: 'testProductSearch', className: 'SearchTest', status: 'PASSED', duration: 1.8 },
     { id: 7, testName: 'testAddToCart', className: 'CartTest', status: 'PASSED', duration: 1.1 },
     { id: 8, testName: 'testRemoveFromCart', className: 'CartTest', status: 'PASSED', duration: 0.9 },
@@ -283,17 +283,17 @@ The overall test suite is healthy, with isolated failures in external integratio
                             Duration: {test.duration.toFixed(2)}s
                           </span>
                         </div>
-                        {test.errorMessage && (
+                        {test.testFailure.message && (
                           <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                             <p className="text-sm font-medium text-destructive mb-2">Error Message</p>
-                            <p className="text-sm text-foreground">{test.errorMessage}</p>
+                            <p className="text-sm text-foreground">{test.testFailure.id}</p>
                           </div>
                         )}
-                        {test.stackTrace && (
+                        {test.testFailure.stackTrace && (
                           <div className="p-3 rounded-lg bg-muted">
                             <p className="text-sm font-medium text-muted-foreground mb-2">Stack Trace</p>
                             <pre className="text-xs text-foreground overflow-x-auto font-mono">
-                              {test.stackTrace}
+                              {test.testFailure.id}
                             </pre>
                           </div>
                         )}
