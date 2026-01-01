@@ -283,17 +283,17 @@ The overall test suite is healthy, with isolated failures in external integratio
                             Duration: {test.duration.toFixed(2)}s
                           </span>
                         </div>
-                        {test.testFailure.message && (
+                        {test.testFailure?.message && (
                           <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                             <p className="text-sm font-medium text-destructive mb-2">Error Message</p>
-                            <p className="text-sm text-foreground">{test.testFailure.id}</p>
+                            <p className="text-sm text-foreground">{test.testFailure.message}</p>
                           </div>
                         )}
-                        {test.testFailure.stackTrace && (
+                        {test.testFailure?.stackTrace && (
                           <div className="p-3 rounded-lg bg-muted">
                             <p className="text-sm font-medium text-muted-foreground mb-2">Stack Trace</p>
                             <pre className="text-xs text-foreground overflow-x-auto font-mono">
-                              {test.testFailure.id}
+                              {test.testFailure.stackTrace}
                             </pre>
                           </div>
                         )}
