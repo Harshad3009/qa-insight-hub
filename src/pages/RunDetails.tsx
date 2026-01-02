@@ -20,9 +20,29 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getRunDetails, analyzeRun, RunDetails as RunDetailsType, TestCase } from '@/services/api';
+import { getRunDetails, analyzeRun, RunDetails as RunDetailsType, TestCase, AIAnalysis } from '@/services/api';
 import { format, parseISO } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+
+// Mock AI analysis data matching the JSON format
+const mockAIAnalysis: AIAnalysis = {
+  executiveSummary: "The build has a moderate number of test failures, with 5 out of 83 tests failing. The failures are concentrated in authentication and payment modules, indicating potential issues with external service integrations.",
+  failureAnalysis: [
+    {
+      rootCause: "Email Service Timeout",
+      count: 1,
+      affectedFeatures: ["Password Reset", "Email Verification"],
+      suggestedFix: "Increase SMTP timeout configuration or implement async email verification with retry mechanism."
+    },
+    {
+      rootCause: "Payment Gateway Connection Issues",
+      count: 1,
+      affectedFeatures: ["Payment Processing", "Checkout Flow"],
+      suggestedFix: "Implement retry logic with exponential backoff. Consider adding circuit breaker pattern for payment gateway calls."
+    }
+  ],
+  flakinessCheck: "No significant flakiness detected in the current test run. All failures appear to be deterministic and related to external service integration issues rather than timing or race conditions."
+};
 
 // Mock data for preview
 const mockRunDetails: RunDetailsType = {
@@ -57,21 +77,21 @@ export default function RunDetails() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  useEffect(() => {
-    const fetchRunDetails = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const data = await getRunDetails(parseInt(id));
-        setRunDetails(data);
-      } catch (error) {
-        console.log('Using mock data - backend not available');
-        setRunDetails(mockRunDetails);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchRunDetails = async () => {
+    if (!id) return;
+    setIsLoading(true);
+    try {
+      const data = await getRunDetails(parseInt(id));
+      setRunDetails(data);
+    } catch (error) {
+      console.log('Using mock data - backend not available');
+      setRunDetails(mockRunDetails);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchRunDetails();
   }, [id]);
 
@@ -79,11 +99,10 @@ export default function RunDetails() {
     if (!id || !runDetails) return;
     setIsAnalyzing(true);
     try {
-      const result = await analyzeRun(parseInt(id));
-      setRunDetails({
-        ...runDetails,
-        aiAnalysis: result.analysis,
-      });
+      await analyzeRun(parseInt(id));
+      // Refetch run details to get the updated aiAnalysis
+      const updatedData = await getRunDetails(parseInt(id));
+      setRunDetails(updatedData);
       toast({
         title: 'Analysis complete',
         description: 'AI has analyzed the test failures',
@@ -92,25 +111,7 @@ export default function RunDetails() {
       // Mock response for demo
       setRunDetails({
         ...runDetails,
-        aiAnalysis: `## Root Cause Analysis
-
-### Critical Findings
-
-1. **Authentication Service Timeout**
-   - The password reset test failed due to email delivery timeout
-   - Recommendation: Increase SMTP timeout or implement async email verification
-
-2. **Payment Gateway Connection Issues**
-   - Connection timeout suggests network instability or gateway overload
-   - Consider implementing retry logic with exponential backoff
-
-### Suggested Actions
-- Review network configuration for payment service
-- Add circuit breaker pattern for external service calls
-- Implement email delivery queue with retry mechanism
-
-### Test Health Score: 78%
-The overall test suite is healthy, with isolated failures in external integrations.`,
+        aiAnalysis: mockAIAnalysis,
       });
       toast({
         title: 'Analysis complete',
@@ -319,45 +320,48 @@ The overall test suite is healthy, with isolated failures in external integratio
               </div>
 
               {runDetails.aiAnalysis ? (
-                <div className="prose prose-invert prose-sm max-w-none">
+                <div className="space-y-6">
+                  {/* Executive Summary */}
                   <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
-                    <div className="whitespace-pre-wrap text-sm text-foreground">
-                      {runDetails.aiAnalysis.split('\n').map((line, i) => {
-                        if (line.startsWith('## ')) {
-                          return (
-                            <h2 key={i} className="text-lg font-bold text-gradient mt-4 mb-2 first:mt-0">
-                              {line.replace('## ', '')}
-                            </h2>
-                          );
-                        }
-                        if (line.startsWith('### ')) {
-                          return (
-                            <h3 key={i} className="text-base font-semibold text-foreground mt-3 mb-1">
-                              {line.replace('### ', '')}
-                            </h3>
-                          );
-                        }
-                        if (line.startsWith('- ')) {
-                          return (
-                            <li key={i} className="text-muted-foreground ml-4">
-                              {line.replace('- ', '')}
-                            </li>
-                          );
-                        }
-                        if (line.match(/^\d+\./)) {
-                          return (
-                            <p key={i} className="text-foreground font-medium mt-2">
-                              {line}
-                            </p>
-                          );
-                        }
-                        return (
-                          <p key={i} className="text-muted-foreground">
-                            {line}
-                          </p>
-                        );
-                      })}
-                    </div>
+                    <h3 className="text-sm font-semibold text-primary mb-2">Executive Summary</h3>
+                    <p className="text-sm text-foreground leading-relaxed">{runDetails.aiAnalysis.executiveSummary}</p>
+                  </div>
+
+                  {/* Failure Analysis */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-foreground">Failure Analysis</h3>
+                    {runDetails.aiAnalysis.failureAnalysis.map((item, index) => (
+                      <div key={index} className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-medium text-destructive">{item.rootCause}</h4>
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 shrink-0">
+                            {item.count} occurrence{item.count > 1 ? 's' : ''}
+                          </Badge>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1.5">Affected Features</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.affectedFeatures.map((feature, fIndex) => (
+                              <Badge key={fIndex} variant="outline" className="text-xs bg-muted/50 text-foreground border-border">
+                                {feature}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1.5">Suggested Fix</p>
+                          <p className="text-sm text-foreground">{item.suggestedFix}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Flakiness Check */}
+                  <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
+                    <h3 className="text-sm font-semibold text-warning mb-2">Flakiness Check</h3>
+                    <p className="text-sm text-foreground leading-relaxed">{runDetails.aiAnalysis.flakinessCheck}</p>
                   </div>
                 </div>
               ) : (
