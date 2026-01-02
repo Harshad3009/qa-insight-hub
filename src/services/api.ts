@@ -28,6 +28,19 @@ export interface FlakyTest {
   failCount: number;
 }
 
+export interface FailureAnalysisItem {
+  rootCause: string;
+  count: number;
+  affectedFeatures: string[];
+  suggestedFix: string;
+}
+
+export interface AIAnalysis {
+  executiveSummary: string;
+  failureAnalysis: FailureAnalysisItem[];
+  flakinessCheck: string;
+}
+
 export interface TestRun {
   id: number;
   executionDate: string;
@@ -36,7 +49,7 @@ export interface TestRun {
   failCount: number;
   skipCount: number;
   status: 'PASSED' | 'FAILED';
-  aiAnalysis?: string;
+  aiAnalysis?: AIAnalysis | null;
 }
 
 export interface TestCase {
@@ -86,7 +99,7 @@ export const getRunDetails = async (id: number): Promise<RunDetails> => {
   return response.data;
 };
 
-export const analyzeRun = async (id: number): Promise<{ analysis: string }> => {
+export const analyzeRun = async (id: number): Promise<{ analysis: AIAnalysis }> => {
   const response = await api.post(`/api/runs/${id}/analyze-run`);
   return response.data;
 };
