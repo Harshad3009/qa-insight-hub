@@ -82,6 +82,7 @@ export default function Dashboard() {
 
   // Calculate metrics from trends
   const latestPassRate = trends.length > 0 ? trends[trends.length - 1].passRate : 0;
+  const activeFailures = trends.length > 0 ? trends[trends.length - 1].failCount : 0;
   const totalRuns = runs.length;
   const avgPassRate = trends.reduce((acc, t) => acc + t.passRate, 0) / trends.length || 0;
 
@@ -123,7 +124,7 @@ export default function Dashboard() {
           />
           <MetricCard
             title="Active Failures"
-            value={topFailures.reduce((acc, f) => acc + f.count, 0)}
+            value={activeFailures}
             subtitle="Needs attention"
             icon={XCircle}
             variant="destructive"
