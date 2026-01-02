@@ -85,14 +85,14 @@ export function RunsTable({ data, isLoading }: RunsTableProps) {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={run.status === 'PASSED' ? 'default' : 'destructive'}
+                      variant={run.status === 'Healthy' ? 'default' : 'destructive'}
                       className={`gap-1 ${
-                        run.status === 'PASSED'
+                        run.status === 'Healthy'
                           ? 'bg-success/20 text-success border-success/30 hover:bg-success/30'
                           : 'bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30'
                       }`}
                     >
-                      {run.status === 'PASSED' ? (
+                      {run.status === 'Healthy' ? (
                         <CheckCircle2 className="w-3 h-3" />
                       ) : (
                         <XCircle className="w-3 h-3" />

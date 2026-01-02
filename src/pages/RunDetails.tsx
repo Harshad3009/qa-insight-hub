@@ -52,7 +52,7 @@ const mockRunDetails: RunDetailsType = {
   passCount: 78,
   failCount: 5,
   skipCount: 0,
-  status: 'PASSED',
+  status: 'Healthy',
   aiAnalysis: null,
   testCases: [
     { id: 1, testName: 'testUserLogin', className: 'AuthenticationTest', status: 'PASSED', duration: 1.2 },
@@ -148,8 +148,10 @@ export default function RunDetails() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'PASSED':
+      case 'Healthy':
         return 'bg-success/20 text-success border-success/30';
       case 'FAILED':
+      case 'Unhealthy':
         return 'bg-destructive/20 text-destructive border-destructive/30';
       case 'SKIPPED':
         return 'bg-warning/20 text-warning border-warning/30';

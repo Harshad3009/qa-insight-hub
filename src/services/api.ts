@@ -48,7 +48,7 @@ export interface TestRun {
   passCount: number;
   failCount: number;
   skipCount: number;
-  status: 'PASSED' | 'FAILED';
+  status: 'Healthy' | 'Unhealthy';
   aiAnalysis?: AIAnalysis | string | null;
 }
 
