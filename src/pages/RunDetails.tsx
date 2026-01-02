@@ -208,7 +208,7 @@ export default function RunDetails() {
               </Badge>
             </h1>
             <p className="text-muted-foreground mt-1">
-              Executed on {format(parseISO(runDetails.executionDate), 'MMMM dd, yyyy at HH:mm')}
+              Executed on {format(parseISO(runDetails.executionDate), 'MMM dd, yyyy HH:mm')}
             </p>
           </div>
         </div>
