@@ -49,7 +49,7 @@ export interface TestRun {
   failCount: number;
   skipCount: number;
   status: 'PASSED' | 'FAILED';
-  aiAnalysis?: AIAnalysis | null;
+  aiAnalysis?: AIAnalysis | string | null;
 }
 
 export interface TestCase {

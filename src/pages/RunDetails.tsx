@@ -320,50 +320,70 @@ export default function RunDetails() {
               </div>
 
               {runDetails.aiAnalysis ? (
-                <div className="space-y-6">
-                  {/* Executive Summary */}
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
-                    <h3 className="text-sm font-semibold text-primary mb-2">Executive Summary</h3>
-                    <p className="text-sm text-foreground leading-relaxed">{runDetails.aiAnalysis.executiveSummary}</p>
-                  </div>
+                (() => {
+                  // Parse aiAnalysis if it's a string
+                  let analysis: AIAnalysis;
+                  if (typeof runDetails.aiAnalysis === 'string') {
+                    try {
+                      analysis = JSON.parse(runDetails.aiAnalysis);
+                    } catch {
+                      return (
+                        <div className="p-4 rounded-lg bg-destructive/5 border border-destructive/20">
+                          <p className="text-sm text-destructive">Failed to parse AI analysis data</p>
+                        </div>
+                      );
+                    }
+                  } else {
+                    analysis = runDetails.aiAnalysis;
+                  }
 
-                  {/* Failure Analysis */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-foreground">Failure Analysis</h3>
-                    {runDetails.aiAnalysis.failureAnalysis.map((item, index) => (
-                      <div key={index} className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-medium text-destructive">{item.rootCause}</h4>
-                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 shrink-0">
-                            {item.count} occurrence{item.count > 1 ? 's' : ''}
-                          </Badge>
-                        </div>
-                        
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1.5">Affected Features</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {item.affectedFeatures.map((feature, fIndex) => (
-                              <Badge key={fIndex} variant="outline" className="text-xs bg-muted/50 text-foreground border-border">
-                                {feature}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1.5">Suggested Fix</p>
-                          <p className="text-sm text-foreground">{item.suggestedFix}</p>
-                        </div>
+                  return (
+                    <div className="space-y-6">
+                      {/* Executive Summary */}
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
+                        <h3 className="text-sm font-semibold text-primary mb-2">Executive Summary</h3>
+                        <p className="text-sm text-foreground leading-relaxed">{analysis.executiveSummary}</p>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Flakiness Check */}
-                  <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
-                    <h3 className="text-sm font-semibold text-warning mb-2">Flakiness Check</h3>
-                    <p className="text-sm text-foreground leading-relaxed">{runDetails.aiAnalysis.flakinessCheck}</p>
-                  </div>
-                </div>
+                      {/* Failure Analysis */}
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-semibold text-foreground">Failure Analysis</h3>
+                        {analysis.failureAnalysis?.map((item, index) => (
+                          <div key={index} className="p-4 rounded-lg bg-destructive/5 border border-destructive/20 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="font-medium text-destructive">{item.rootCause}</h4>
+                              <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 shrink-0">
+                                {item.count} occurrence{item.count > 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                            
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Affected Features</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {item.affectedFeatures?.map((feature, fIndex) => (
+                                  <Badge key={fIndex} variant="outline" className="text-xs bg-muted/50 text-foreground border-border">
+                                    {feature}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Suggested Fix</p>
+                              <p className="text-sm text-foreground">{item.suggestedFix}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Flakiness Check */}
+                      <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
+                        <h3 className="text-sm font-semibold text-warning mb-2">Flakiness Check</h3>
+                        <p className="text-sm text-foreground leading-relaxed">{analysis.flakinessCheck}</p>
+                      </div>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
