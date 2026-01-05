@@ -61,9 +61,9 @@ export default function Dashboard() {
     try {
       const [trendsData, failuresData, flakyData, runsData] = await Promise.all([
         getTrends(30),
-        getTopFailures(5),
+        getTopFailures(5, 30),
         getFlakyTests(30),
-        getRuns({ limit: 5 }),
+        getRuns({ limit: 5, days: 30 }),
       ]);
       setTrends(trendsData);
       setTopFailures(failuresData);

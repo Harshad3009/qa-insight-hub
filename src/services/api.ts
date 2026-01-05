@@ -78,8 +78,8 @@ export const getTrends = async (days: number = 30): Promise<TrendData[]> => {
   return response.data;
 };
 
-export const getTopFailures = async (limit: number = 5): Promise<TopFailure[]> => {
-  const response = await api.get(`/api/dashboard/top-failures?limit=${limit}`);
+export const getTopFailures = async (limit: number = 5, days: number = 30): Promise<TopFailure[]> => {
+  const response = await api.get(`/api/dashboard/top-failures?limit=${limit}&days=${days}`);
   return response.data;
 };
 
