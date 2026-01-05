@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Activity, CheckCircle2, XCircle, TrendingUp } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { UploadReportDialog } from '@/components/dashboard/UploadReportDialog';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { TrendsChart } from '@/components/dashboard/TrendsChart';
 import { TopFailuresCard } from '@/components/dashboard/TopFailuresCard';
 import { FlakyTestsAlert } from '@/components/dashboard/FlakyTestsAlert';
 import { RunsTable } from '@/components/dashboard/RunsTable';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 import {
   getTrends,
   getTopFailures,
@@ -50,6 +50,7 @@ const mockRuns: TestRun[] = [
 ];
 
 export default function Dashboard() {
+  const { daysNumber } = useDateFilter();
   const [trends, setTrends] = useState<TrendData[]>(mockTrends);
   const [topFailures, setTopFailures] = useState<TopFailure[]>(mockTopFailures);
   const [flakyTests, setFlakyTests] = useState<FlakyTest[]>(mockFlakyTests);
@@ -60,10 +61,10 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const [trendsData, failuresData, flakyData, runsData] = await Promise.all([
-        getTrends(30),
-        getTopFailures(5, 30),
-        getFlakyTests(30),
-        getRuns({ limit: 5, days: 30 }),
+        getTrends(daysNumber),
+        getTopFailures(5, daysNumber),
+        getFlakyTests(daysNumber),
+        getRuns({ limit: 5, days: daysNumber }),
       ]);
       setTrends(trendsData);
       setTopFailures(failuresData);
@@ -78,7 +79,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [daysNumber]);
 
   // Calculate metrics from trends
   const latestPassRate = trends.length > 0 ? trends[trends.length - 1].passRate : 0;
@@ -90,12 +91,9 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Overview of your test execution metrics</p>
-          </div>
-          <UploadReportDialog onSuccess={fetchData} />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your test execution metrics</p>
         </div>
 
         {/* Metrics Row */}
@@ -110,7 +108,7 @@ export default function Dashboard() {
           <MetricCard
             title="Avg Pass Rate"
             value={`${avgPassRate.toFixed(1)}%`}
-            subtitle="Last 30 days"
+            subtitle={`Last ${daysNumber} days`}
             icon={TrendingUp}
             trend={{ value: 2.5, isPositive: true }}
             variant="default"

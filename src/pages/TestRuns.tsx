@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { RunsTable } from '@/components/dashboard/RunsTable';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 import { getRuns, TestRun } from '@/services/api';
-import { subDays, format } from 'date-fns';
 
 // Mock data for preview
 const mockRuns: TestRun[] = [
@@ -17,7 +16,7 @@ const mockRuns: TestRun[] = [
 ];
 
 export default function TestRuns() {
-  const [period, setPeriod] = useState('30');
+  const { daysNumber } = useDateFilter();
   const [runs, setRuns] = useState<TestRun[]>(mockRuns);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,7 +24,7 @@ export default function TestRuns() {
     const fetchRuns = async () => {
       setIsLoading(true);
       try {
-        const data = await getRuns({ days: parseInt(period) });
+        const data = await getRuns({ days: daysNumber });
         setRuns(data);
       } catch (error) {
         console.log('Using mock data - backend not available');
@@ -35,31 +34,17 @@ export default function TestRuns() {
       }
     };
     fetchRuns();
-  }, [period]);
+  }, [daysNumber]);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Test Runs</h1>
-            <p className="text-muted-foreground">
-              View all test run history
-            </p>
-          </div>
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="15">Last 15 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="60">Last 60 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-            </SelectContent>
-          </Select>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Test Runs</h1>
+          <p className="text-muted-foreground">
+            View all test run history
+          </p>
         </div>
 
         {/* Runs Table */}

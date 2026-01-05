@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useDateFilter } from '@/contexts/DateFilterContext';
 import { 
   Bug, 
   Search, 
@@ -46,6 +45,7 @@ const statusConfig: Record<ResolutionStatus, { label: string; color: string; ico
 };
 
 export default function FlakyTests() {
+  const { daysNumber } = useDateFilter();
   const [flakyTests, setFlakyTests] = useState<ManagedFlakyTest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,8 +54,9 @@ export default function FlakyTests() {
 
   useEffect(() => {
     const fetchFlakyTests = async () => {
+      setLoading(true);
       try {
-        const data = await getFlakyTests(30);
+        const data = await getFlakyTests(daysNumber);
         const managedTests = data.map((test, index) => ({
           ...test,
           id: `flaky-${index}`,
@@ -78,7 +79,7 @@ export default function FlakyTests() {
     };
 
     fetchFlakyTests();
-  }, []);
+  }, [daysNumber]);
 
   const handleAcknowledge = (id: string) => {
     setFlakyTests(prev => prev.map(test => 
@@ -140,11 +141,9 @@ export default function FlakyTests() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Flaky Tests Management</h1>
-            <p className="text-muted-foreground">Track and resolve flaky tests across your test suite</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Flaky Tests Management</h1>
+          <p className="text-muted-foreground">Track and resolve flaky tests across your test suite</p>
         </div>
 
         {/* Stats Cards */}

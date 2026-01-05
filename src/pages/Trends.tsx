@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTrends, TrendData } from "@/services/api";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 import { TrendingUp, TrendingDown, Clock, BarChart3, Activity } from "lucide-react";
 import {
   LineChart,
@@ -46,7 +46,7 @@ const generateFailurePatternData = () => [
 ];
 
 export default function Trends() {
-  const [period, setPeriod] = useState("30");
+  const { daysNumber } = useDateFilter();
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [executionData, setExecutionData] = useState<any[]>([]);
   const [failurePatterns] = useState(generateFailurePatternData());
@@ -56,12 +56,12 @@ export default function Trends() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const data = await getTrends(parseInt(period));
+        const data = await getTrends(daysNumber);
         setTrendsData(data);
       } catch (error) {
         // Mock data fallback
         const mockData = [];
-        for (let i = parseInt(period); i >= 0; i--) {
+        for (let i = daysNumber; i >= 0; i--) {
           const date = subDays(new Date(), i);
           mockData.push({
             date: format(date, "yyyy-MM-dd"),
@@ -72,11 +72,11 @@ export default function Trends() {
         }
         setTrendsData(mockData);
       }
-      setExecutionData(generateExecutionTimeData(parseInt(period)));
+      setExecutionData(generateExecutionTimeData(daysNumber));
       setIsLoading(false);
     };
     fetchData();
-  }, [period]);
+  }, [daysNumber]);
 
   const formattedTrends = trendsData.map((item) => ({
     ...item,
@@ -102,25 +102,11 @@ export default function Trends() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Trends Analytics</h1>
-            <p className="text-muted-foreground">
-              Detailed analysis of test performance over time
-            </p>
-          </div>
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="14">Last 14 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="60">Last 60 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-            </SelectContent>
-          </Select>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Trends Analytics</h1>
+          <p className="text-muted-foreground">
+            Detailed analysis of test performance over time
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -133,7 +119,7 @@ export default function Trends() {
             <CardContent>
               <div className="text-2xl font-bold">{avgPassRate}%</div>
               <p className="text-xs text-muted-foreground">
-                Over the last {period} days
+                Over the last {daysNumber} days
               </p>
             </CardContent>
           </Card>
