@@ -63,7 +63,7 @@ export default function Dashboard() {
         getTrends(30),
         getTopFailures(5),
         getFlakyTests(30),
-        getRuns(),
+        getRuns({ limit: 5 }),
       ]);
       setTrends(trendsData);
       setTopFailures(failuresData);
