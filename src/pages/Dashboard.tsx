@@ -84,7 +84,7 @@ export default function Dashboard() {
   // Calculate metrics from trends
   const latestPassRate = trends.length > 0 ? trends[trends.length - 1].passRate : 0;
   const activeFailures = trends.length > 0 ? trends[trends.length - 1].failCount : 0;
-  const totalRuns = runs.length;
+  const totalRuns = trends.length;
   const avgPassRate = trends.reduce((acc, t) => acc + t.passRate, 0) / trends.length || 0;
 
   return (
