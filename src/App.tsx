@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import RunDetails from "./pages/RunDetails";
+import TestRuns from "./pages/TestRuns";
 import FlakyTests from "./pages/FlakyTests";
 import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
@@ -23,6 +24,7 @@ const App = () => (
           <SidebarProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/runs" element={<TestRuns />} />
               <Route path="/runs/:id" element={<RunDetails />} />
               <Route path="/flaky" element={<FlakyTests />} />
               <Route path="/trends" element={<Trends />} />

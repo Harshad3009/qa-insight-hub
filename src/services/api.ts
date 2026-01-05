@@ -89,8 +89,12 @@ export const getFlakyTests = async (days: number = 30): Promise<FlakyTest[]> => 
 };
 
 // Runs endpoints
-export const getRuns = async (): Promise<TestRun[]> => {
-  const response = await api.get('/api/runs');
+export const getRuns = async (params?: { limit?: number; days?: number }): Promise<TestRun[]> => {
+  const queryParams = new URLSearchParams();
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  if (params?.days) queryParams.append('days', params.days.toString());
+  const queryString = queryParams.toString();
+  const response = await api.get(`/api/runs${queryString ? `?${queryString}` : ''}`);
   return response.data;
 };
 
