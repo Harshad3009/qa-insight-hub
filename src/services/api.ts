@@ -108,8 +108,12 @@ export const analyzeRun = async (id: number): Promise<{ analysis: AIAnalysis }> 
   return response.data;
 };
 
-// Upload endpoint
-export const uploadReport = async (formData: FormData): Promise<{ message: string; runId: number }> => {
+// Upload endpoint - supports multiple files, returns array of run IDs
+export const uploadReports = async (files: File[]): Promise<number[]> => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('files', file);
+  });
   const response = await api.post('/upload-report', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
