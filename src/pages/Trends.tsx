@@ -142,7 +142,7 @@ export default function Trends() {
             <CardContent>
               <div className="text-2xl font-bold">{avgExecutionTime}s</div>
               <p className="text-xs text-muted-foreground">
-                Per test suite
+                Per test case
               </p>
             </CardContent>
           </Card>
@@ -196,7 +196,7 @@ export default function Trends() {
                   <Area
                     type="monotone"
                     dataKey="passRate"
-                    stroke="hsl(var(--chart-1))"
+                    stroke="hsl(var(--chart-2))"
                     fill="url(#passRateGradient)"
                     strokeWidth={2}
                     name="Pass Rate (%)"
@@ -247,7 +247,7 @@ export default function Trends() {
                     />
                     <Bar
                       dataKey="count"
-                      fill="hsl(var(--chart-2))"
+                      fill="hsl(var(--chart-4))"
                       radius={[0, 4, 4, 0]}
                       name="Occurrences"
                     />
@@ -362,7 +362,7 @@ export default function Trends() {
                   <Line
                     type="monotone"
                     dataKey="minTime"
-                    stroke="hsl(var(--chart-3))"
+                    stroke="hsl(var(--chart-2))"
                     strokeWidth={2}
                     dot={false}
                     name="Min Time"

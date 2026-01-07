@@ -101,7 +101,7 @@ export default function Dashboard() {
           <MetricCard
             title="Total Runs"
             value={totalRuns}
-            subtitle="All time"
+            subtitle={`Last ${daysNumber} days`}
             icon={Activity}
             variant="default"
           />
