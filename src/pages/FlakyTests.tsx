@@ -15,7 +15,7 @@ import {
   TrendingDown,
   Filter
 } from 'lucide-react';
-import { getFlakyTests, FlakyTest } from '@/services/api';
+import { getFlakyTests, updateFlakyTestStatus, FlakyTest } from '@/services/api';
 import { toast } from 'sonner';
 
 type ResolutionStatus = 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
@@ -24,17 +24,16 @@ interface ManagedFlakyTest extends FlakyTest {
   id: string;
   acknowledged: boolean;
   resolutionStatus: ResolutionStatus;
-  assignee?: string;
-  notes?: string;
 }
 
+// Mock data matching backend response structure
 const mockFlakyTests: FlakyTest[] = [
-  { testName: 'testUserLogin', className: 'AuthenticationTest', flakinessScore: 0.45, passCount: 55, failCount: 45 },
-  { testName: 'testPaymentProcessing', className: 'PaymentTest', flakinessScore: 0.30, passCount: 70, failCount: 30 },
-  { testName: 'testDatabaseConnection', className: 'DatabaseTest', flakinessScore: 0.25, passCount: 75, failCount: 25 },
-  { testName: 'testAPITimeout', className: 'IntegrationTest', flakinessScore: 0.20, passCount: 80, failCount: 20 },
-  { testName: 'testFileUpload', className: 'FileHandlingTest', flakinessScore: 0.15, passCount: 85, failCount: 15 },
-  { testName: 'testCacheInvalidation', className: 'CacheTest', flakinessScore: 0.12, passCount: 88, failCount: 12 },
+  { testName: 'testUserLogin', className: 'AuthenticationTest', flakinessScore: 0.45, passCount: 55, failCount: 45, acknowledged: false, resolutionStatus: 'unresolved' },
+  { testName: 'testPaymentProcessing', className: 'PaymentTest', flakinessScore: 0.30, passCount: 70, failCount: 30, acknowledged: true, resolutionStatus: 'investigating' },
+  { testName: 'testDatabaseConnection', className: 'DatabaseTest', flakinessScore: 0.25, passCount: 75, failCount: 25, acknowledged: false, resolutionStatus: 'unresolved' },
+  { testName: 'testAPITimeout', className: 'IntegrationTest', flakinessScore: 0.20, passCount: 80, failCount: 20, acknowledged: true, resolutionStatus: 'in-progress' },
+  { testName: 'testFileUpload', className: 'FileHandlingTest', flakinessScore: 0.15, passCount: 85, failCount: 15, acknowledged: false, resolutionStatus: 'unresolved' },
+  { testName: 'testCacheInvalidation', className: 'CacheTest', flakinessScore: 0.12, passCount: 88, failCount: 12, acknowledged: true, resolutionStatus: 'resolved' },
 ];
 
 const statusConfig: Record<ResolutionStatus, { label: string; color: string; icon: typeof CheckCircle2 }> = {
@@ -59,18 +58,18 @@ export default function FlakyTests() {
         const data = await getFlakyTests(daysNumber);
         const managedTests = data.map((test, index) => ({
           ...test,
-          id: `flaky-${index}`,
-          acknowledged: false,
-          resolutionStatus: 'unresolved' as ResolutionStatus,
+          id: test.id ?? `flaky-${index}`,
+          acknowledged: test.acknowledged ?? false,
+          resolutionStatus: (test.resolutionStatus ?? 'unresolved') as ResolutionStatus,
         }));
         setFlakyTests(managedTests);
       } catch (error) {
         console.log('Using mock data - backend not available');
         const managedTests = mockFlakyTests.map((test, index) => ({
           ...test,
-          id: `flaky-${index}`,
-          acknowledged: false,
-          resolutionStatus: 'unresolved' as ResolutionStatus,
+          id: test.id ?? `flaky-${index}`,
+          acknowledged: test.acknowledged ?? false,
+          resolutionStatus: (test.resolutionStatus ?? 'unresolved') as ResolutionStatus,
         }));
         setFlakyTests(managedTests);
       } finally {
@@ -81,21 +80,60 @@ export default function FlakyTests() {
     fetchFlakyTests();
   }, [daysNumber]);
 
-  const handleAcknowledge = (id: string) => {
-    setFlakyTests(prev => prev.map(test => 
-      test.id === id ? { ...test, acknowledged: !test.acknowledged } : test
-    ));
+  const handleAcknowledge = async (id: string) => {
     const test = flakyTests.find(t => t.id === id);
-    if (test) {
-      toast.success(test.acknowledged ? 'Test unacknowledged' : 'Test acknowledged');
+    if (!test) return;
+
+    const newAcknowledged = !test.acknowledged;
+    
+    // Optimistic update
+    setFlakyTests(prev => prev.map(t => 
+      t.id === id ? { ...t, acknowledged: newAcknowledged } : t
+    ));
+
+    try {
+      await updateFlakyTestStatus(
+        test.className,
+        test.testName,
+        newAcknowledged,
+        test.resolutionStatus
+      );
+      toast.success(newAcknowledged ? 'Test acknowledged' : 'Test unacknowledged');
+    } catch (error) {
+      // Revert on error
+      setFlakyTests(prev => prev.map(t => 
+        t.id === id ? { ...t, acknowledged: !newAcknowledged } : t
+      ));
+      toast.error('Failed to update acknowledgement status');
     }
   };
 
-  const handleStatusChange = (id: string, status: ResolutionStatus) => {
-    setFlakyTests(prev => prev.map(test => 
-      test.id === id ? { ...test, resolutionStatus: status } : test
+  const handleStatusChange = async (id: string, status: ResolutionStatus) => {
+    const test = flakyTests.find(t => t.id === id);
+    if (!test) return;
+
+    const previousStatus = test.resolutionStatus;
+    
+    // Optimistic update
+    setFlakyTests(prev => prev.map(t => 
+      t.id === id ? { ...t, resolutionStatus: status } : t
     ));
-    toast.success(`Status updated to ${statusConfig[status].label}`);
+
+    try {
+      await updateFlakyTestStatus(
+        test.className,
+        test.testName,
+        test.acknowledged,
+        status
+      );
+      toast.success(`Status updated to ${statusConfig[status].label}`);
+    } catch (error) {
+      // Revert on error
+      setFlakyTests(prev => prev.map(t => 
+        t.id === id ? { ...t, resolutionStatus: previousStatus } : t
+      ));
+      toast.error('Failed to update resolution status');
+    }
   };
 
   const filteredTests = flakyTests.filter(test => {
