@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTrends, TrendData } from "@/services/api";
+import { getTrends, getFailurePatterns, TrendData, FailurePattern } from "@/services/api";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { TrendingUp, TrendingDown, Clock, BarChart3, Activity } from "lucide-react";
 import {
@@ -20,23 +20,25 @@ import {
 } from "recharts";
 import { format, parseISO, subDays } from "date-fns";
 
-// Mock execution time data
-const generateExecutionTimeData = (days: number) => {
-  const data = [];
+// Mock data fallbacks
+const generateMockTrendData = (days: number): TrendData[] => {
+  const data: TrendData[] = [];
   for (let i = days; i >= 0; i--) {
     const date = subDays(new Date(), i);
     data.push({
       date: format(date, "yyyy-MM-dd"),
-      avgTime: Math.floor(Math.random() * 120) + 30,
-      maxTime: Math.floor(Math.random() * 300) + 100,
-      minTime: Math.floor(Math.random() * 20) + 5,
+      passRate: Math.floor(Math.random() * 15) + 80,
+      failCount: Math.floor(Math.random() * 20),
+      totalTests: Math.floor(Math.random() * 50) + 100,
+      avgDuration: Math.floor(Math.random() * 120) + 30,
+      maxDuration: Math.floor(Math.random() * 300) + 100,
+      minDuration: Math.floor(Math.random() * 20) + 5,
     });
   }
   return data;
 };
 
-// Mock failure pattern data
-const generateFailurePatternData = () => [
+const generateMockFailurePatterns = (): FailurePattern[] => [
   { category: "Timeout", count: 45, trend: "up" },
   { category: "Assertion", count: 32, trend: "down" },
   { category: "Connection", count: 28, trend: "up" },
@@ -48,31 +50,24 @@ const generateFailurePatternData = () => [
 export default function Trends() {
   const { daysNumber } = useDateFilter();
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
-  const [executionData, setExecutionData] = useState<any[]>([]);
-  const [failurePatterns] = useState(generateFailurePatternData());
+  const [failurePatterns, setFailurePatterns] = useState<FailurePattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const data = await getTrends(daysNumber);
-        setTrendsData(data);
+        const [trends, patterns] = await Promise.all([
+          getTrends(daysNumber),
+          getFailurePatterns(daysNumber),
+        ]);
+        setTrendsData(trends);
+        setFailurePatterns(patterns);
       } catch (error) {
-        // Mock data fallback
-        const mockData = [];
-        for (let i = daysNumber; i >= 0; i--) {
-          const date = subDays(new Date(), i);
-          mockData.push({
-            date: format(date, "yyyy-MM-dd"),
-            passRate: Math.floor(Math.random() * 15) + 80,
-            failCount: Math.floor(Math.random() * 20),
-            totalTests: Math.floor(Math.random() * 50) + 100,
-          });
-        }
-        setTrendsData(mockData);
+        console.log("Using mock data - backend not available");
+        setTrendsData(generateMockTrendData(daysNumber));
+        setFailurePatterns(generateMockFailurePatterns());
       }
-      setExecutionData(generateExecutionTimeData(daysNumber));
       setIsLoading(false);
     };
     fetchData();
@@ -84,9 +79,12 @@ export default function Trends() {
     passRate: Math.round(item.passRate * 10) / 10,
   }));
 
-  const formattedExecution = executionData.map((item) => ({
-    ...item,
+  // Use execution time data from trends API (avgDuration, maxDuration, minDuration)
+  const formattedExecution = trendsData.map((item) => ({
     formattedDate: format(parseISO(item.date), "MMM dd"),
+    avgTime: item.avgDuration ?? 0,
+    maxTime: item.maxDuration ?? 0,
+    minTime: item.minDuration ?? 0,
   }));
 
   const avgPassRate = trendsData.length > 0
@@ -94,8 +92,9 @@ export default function Trends() {
     : 0;
 
   const totalFailures = trendsData.reduce((sum, d) => sum + d.failCount, 0);
-  const avgExecutionTime = executionData.length > 0
-    ? Math.round(executionData.reduce((sum, d) => sum + d.avgTime, 0) / executionData.length)
+  
+  const avgExecutionTime = trendsData.length > 0
+    ? Math.round(trendsData.reduce((sum, d) => sum + (d.avgDuration ?? 0), 0) / trendsData.length)
     : 0;
 
   return (
@@ -222,33 +221,39 @@ export default function Trends() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={failurePatterns} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis
-                    dataKey="category"
-                    type="category"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                    width={100}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    labelStyle={{ color: "hsl(var(--foreground))" }}
-                  />
-                  <Bar
-                    dataKey="count"
-                    fill="hsl(var(--chart-2))"
-                    radius={[0, 4, 4, 0]}
-                    name="Occurrences"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {isLoading ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  Loading...
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={failurePatterns} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <YAxis
+                      dataKey="category"
+                      type="category"
+                      stroke="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      width={100}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                      labelStyle={{ color: "hsl(var(--foreground))" }}
+                    />
+                    <Bar
+                      dataKey="count"
+                      fill="hsl(var(--chart-2))"
+                      radius={[0, 4, 4, 0]}
+                      name="Occurrences"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
