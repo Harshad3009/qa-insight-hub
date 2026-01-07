@@ -12,6 +12,9 @@ export interface TrendData {
   passRate: number;
   failCount: number;
   totalTests: number;
+  avgDuration?: number;
+  maxDuration?: number;
+  minDuration?: number;
 }
 
 export interface TopFailure {
@@ -21,11 +24,21 @@ export interface TopFailure {
 }
 
 export interface FlakyTest {
+  id?: string; // Backend provides an ID or we construct one
   testName: string;
   className: string;
   flakinessScore: number;
   passCount: number;
   failCount: number;
+  // Management Fields
+  acknowledged?: boolean;
+  resolutionStatus?: 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
+}
+
+export interface FailurePattern {
+  category: string;
+  count: number;
+  trend: string;
 }
 
 export interface FailureAnalysisItem {
@@ -106,6 +119,28 @@ export const getRunDetails = async (id: number): Promise<RunDetails> => {
 export const analyzeRun = async (id: number): Promise<{ analysis: AIAnalysis }> => {
   const response = await api.post(`/api/runs/${id}/analyze-run`);
   return response.data;
+};
+
+// Trends endpoints
+export const getFailurePatterns = async (days: number = 30): Promise<FailurePattern[]> => {
+    const response = await api.get(`/api/dashboard/failure-patterns?days=${days}`);
+    return response.data;
+};
+
+// Flaky Tests Management endpoints
+export const updateFlakyTestStatus = async (
+    className: string,
+    testName: string,
+    acknowledged: boolean,
+    resolutionStatus: string
+) => {
+    const response = await api.post('/api/dashboard/flaky-tests/update', {
+        className,
+        testName,
+        acknowledged,
+        resolutionStatus
+    });
+    return response.data;
 };
 
 // Upload endpoint - supports multiple files, returns array of run IDs
