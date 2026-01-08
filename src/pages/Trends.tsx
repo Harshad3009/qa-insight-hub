@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTrends, getFailurePatterns, TrendData, FailurePattern } from "@/services/api";
+import {getTrends, getFailurePatterns, TrendData, FailurePattern, DashboardMetrics} from "@/services/api";
 import { useDateFilter } from "@/contexts/DateFilterContext";
 import { TrendingUp, TrendingDown, Clock, BarChart3, Activity } from "lucide-react";
 import {
@@ -50,6 +50,7 @@ const generateMockFailurePatterns = (): FailurePattern[] => [
 export default function Trends() {
   const { daysNumber } = useDateFilter();
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [failurePatterns, setFailurePatterns] = useState<FailurePattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,12 +58,13 @@ export default function Trends() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [trends, patterns] = await Promise.all([
+        const [trendsResponse, patterns] = await Promise.all([
           getTrends(daysNumber),
           getFailurePatterns(daysNumber),
         ]);
-        setTrendsData(trends);
+        setTrendsData(trendsResponse.dailyTrends);
         setFailurePatterns(patterns);
+        setMetrics(trendsResponse.metrics)
       } catch (error) {
         console.log("Using mock data - backend not available");
         setTrendsData(generateMockTrendData(daysNumber));
@@ -87,16 +89,6 @@ export default function Trends() {
     minTime: item.minDuration ?? 0,
   }));
 
-  const avgPassRate = trendsData.length > 0
-    ? Math.round((trendsData.reduce((sum, d) => sum + d.passRate, 0) / trendsData.length) * 10) / 10
-    : 0;
-
-  const totalFailures = trendsData.reduce((sum, d) => sum + d.failCount, 0);
-  
-  const avgExecutionTime = trendsData.length > 0
-    ? Math.round(trendsData.reduce((sum, d) => sum + (d.avgDuration ?? 0), 0) / trendsData.length)
-    : 0;
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -116,7 +108,7 @@ export default function Trends() {
               <TrendingUp className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{avgPassRate}%</div>
+              <div className="text-2xl font-bold">{metrics?.avgPassRate ?? 0}%</div>
               <p className="text-xs text-muted-foreground">
                 Over the last {daysNumber} days
               </p>
@@ -128,7 +120,7 @@ export default function Trends() {
               <TrendingDown className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalFailures}</div>
+              <div className="text-2xl font-bold">{metrics?.totalUniqueFailures ?? 0}</div>
               <p className="text-xs text-muted-foreground">
                 Across all test runs
               </p>
@@ -140,7 +132,7 @@ export default function Trends() {
               <Clock className="h-4 w-4 text-cyan-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{avgExecutionTime}s</div>
+              <div className="text-2xl font-bold">{metrics?.avgExecutionTime ?? 0}s</div>
               <p className="text-xs text-muted-foreground">
                 Per test case
               </p>

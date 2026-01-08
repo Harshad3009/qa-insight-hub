@@ -15,7 +15,7 @@ import {
   TrendData,
   TopFailure,
   FlakyTest,
-  TestRun,
+  TestRun, DashboardMetrics,
 } from '@/services/api';
 
 // Mock data for preview
@@ -52,6 +52,7 @@ const mockRuns: TestRun[] = [
 export default function Dashboard() {
   const { daysNumber } = useDateFilter();
   const [trends, setTrends] = useState<TrendData[]>(mockTrends);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [topFailures, setTopFailures] = useState<TopFailure[]>(mockTopFailures);
   const [flakyTests, setFlakyTests] = useState<FlakyTest[]>(mockFlakyTests);
   const [runs, setRuns] = useState<TestRun[]>(mockRuns);
@@ -60,15 +61,16 @@ export default function Dashboard() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [trendsData, failuresData, flakyData, runsData] = await Promise.all([
+      const [trendsResponse, failuresData, flakyTestResponse, runsData] = await Promise.all([
         getTrends(daysNumber),
         getTopFailures(5, daysNumber),
         getFlakyTests(daysNumber),
         getRuns({ limit: 5, days: daysNumber }),
       ]);
-      setTrends(trendsData);
+      setTrends(trendsResponse.dailyTrends);
+      setMetrics(trendsResponse.metrics)
       setTopFailures(failuresData);
-      setFlakyTests(flakyData);
+      setFlakyTests(flakyTestResponse.tests);
       setRuns(runsData);
     } catch (error) {
       console.log('Using mock data - backend not available');
@@ -82,10 +84,8 @@ export default function Dashboard() {
   }, [daysNumber]);
 
   // Calculate metrics from trends
-  const latestPassRate = trends.length > 0 ? trends[trends.length - 1].passRate : 0;
   const activeFailures = trends.length > 0 ? trends[trends.length - 1].failCount : 0;
-  const totalRuns = trends.length;
-  const avgPassRate = trends.reduce((acc, t) => acc + t.passRate, 0) / trends.length || 0;
+  const avgPassRate = metrics?.avgPassRate ?? 0;
 
   return (
     <DashboardLayout>
@@ -100,7 +100,7 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Total Runs"
-            value={totalRuns}
+            value={metrics?.totalRuns ?? 0}
             subtitle={`Last ${daysNumber} days`}
             icon={Activity}
             variant="default"
@@ -110,12 +110,16 @@ export default function Dashboard() {
             value={`${avgPassRate.toFixed(1)}%`}
             subtitle={`Last ${daysNumber} days`}
             icon={TrendingUp}
-            trend={{ value: 2.5, isPositive: true }}
+            trend={{
+                value: Math.abs(metrics?.passRateTrend ?? 0),
+                direction: (metrics?.passRateTrend ?? 0) >= 0 ? "up" : "down",
+                label: "vs previous period"
+            }}
             variant="default"
           />
           <MetricCard
             title="Latest Pass Rate"
-            value={`${latestPassRate}%`}
+            value={`${metrics?.latestPassRate}%`}
             subtitle="Most recent run"
             icon={CheckCircle2}
             variant="success"

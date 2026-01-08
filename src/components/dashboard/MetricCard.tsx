@@ -8,7 +8,8 @@ interface MetricCardProps {
   icon: LucideIcon;
   trend?: {
     value: number;
-    isPositive: boolean;
+    direction?: 'up' | 'down';
+    label?: string;
   };
   variant?: 'default' | 'success' | 'warning' | 'destructive';
 }
@@ -45,10 +46,10 @@ export function MetricCard({
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           )}
           {trend && (
-            <div className={`flex items-center gap-1 text-sm ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
-              <span>{trend.isPositive ? '↑' : '↓'}</span>
+            <div className={`flex items-center gap-1 text-sm ${trend.direction === "up" ? 'text-success' : 'text-destructive'}`}>
+              <span>{trend.direction === "up" ? '↑' : '↓'}</span>
               <span>{Math.abs(trend.value)}%</span>
-              <span className="text-muted-foreground">vs last period</span>
+              <span className="text-muted-foreground">{trend.label}</span>
             </div>
           )}
         </div>

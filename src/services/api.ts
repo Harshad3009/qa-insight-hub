@@ -17,6 +17,20 @@ export interface TrendData {
   minDuration?: number;
 }
 
+export interface DashboardMetrics {
+    totalRuns: number;
+    avgPassRate: number;
+    latestPassRate: number;
+    passRateTrend: number;
+    totalUniqueFailures: number;
+    avgExecutionTime: number;
+}
+
+export interface TrendsResponse {
+    metrics: DashboardMetrics;
+    dailyTrends: TrendData[];
+}
+
 export interface TopFailure {
   errorMessage: string;
   count: number;
@@ -33,6 +47,20 @@ export interface FlakyTest {
   // Management Fields
   acknowledged?: boolean;
   resolutionStatus?: 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
+}
+
+export interface FlakyMetrics {
+    totalFlakyTests: number;
+    acknowledgedCount: number;
+    inProgressCount: number;
+    resolvedCount: number;
+    investigatingCount: number;
+    unresolvedCount: number;
+}
+
+export interface FlakyTestsResponse {
+    metrics: FlakyMetrics;
+    tests: FlakyTest[];
 }
 
 export interface FailurePattern {
@@ -86,7 +114,7 @@ export interface RunDetails extends TestRun {
 }
 
 // Dashboard endpoints
-export const getTrends = async (days: number = 30): Promise<TrendData[]> => {
+export const getTrends = async (days: number = 30): Promise<TrendsResponse> => {
   const response = await api.get(`/api/dashboard/trends?days=${days}`);
   return response.data;
 };
@@ -96,7 +124,7 @@ export const getTopFailures = async (limit: number = 5, days: number = 30): Prom
   return response.data;
 };
 
-export const getFlakyTests = async (days: number = 30): Promise<FlakyTest[]> => {
+export const getFlakyTests = async (days: number = 30): Promise<FlakyTestsResponse> => {
   const response = await api.get(`/api/dashboard/flaky-tests?days=${days}`);
   return response.data;
 };

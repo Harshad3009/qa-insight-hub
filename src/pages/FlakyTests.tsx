@@ -15,7 +15,7 @@ import {
   TrendingDown,
   Filter
 } from 'lucide-react';
-import { getFlakyTests, updateFlakyTestStatus, FlakyTest } from '@/services/api';
+import {getFlakyTests, updateFlakyTestStatus, FlakyTest, FlakyMetrics} from '@/services/api';
 import { toast } from 'sonner';
 
 type ResolutionStatus = 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
@@ -46,6 +46,7 @@ const statusConfig: Record<ResolutionStatus, { label: string; color: string; ico
 export default function FlakyTests() {
   const { daysNumber } = useDateFilter();
   const [flakyTests, setFlakyTests] = useState<ManagedFlakyTest[]>([]);
+  const [metrics, setMetrics] = useState<FlakyMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -55,14 +56,15 @@ export default function FlakyTests() {
     const fetchFlakyTests = async () => {
       setLoading(true);
       try {
-        const data = await getFlakyTests(daysNumber);
-        const managedTests = data.map((test, index) => ({
+        const flakyTests = await getFlakyTests(daysNumber);
+        const managedTests = flakyTests.tests.map((test, index) => ({
           ...test,
           id: test.id ?? `flaky-${index}`,
           acknowledged: test.acknowledged ?? false,
           resolutionStatus: (test.resolutionStatus ?? 'unresolved') as ResolutionStatus,
         }));
         setFlakyTests(managedTests);
+        setMetrics(flakyTests.metrics);
       } catch (error) {
         console.log('Using mock data - backend not available');
         const managedTests = mockFlakyTests.map((test, index) => ({
@@ -193,7 +195,7 @@ export default function FlakyTests() {
                   <Bug className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics?.totalFlakyTests ?? 0}</p>
                   <p className="text-sm text-muted-foreground">Total Flaky Tests</p>
                 </div>
               </div>
@@ -207,7 +209,7 @@ export default function FlakyTests() {
                   <CheckCircle2 className="w-5 h-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.acknowledged}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics?.acknowledgedCount ?? 0}</p>
                   <p className="text-sm text-muted-foreground">Acknowledged</p>
                 </div>
               </div>
@@ -221,7 +223,7 @@ export default function FlakyTests() {
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.inProgress}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics?.inProgressCount + metrics?.investigatingCount}</p>
                   <p className="text-sm text-muted-foreground">In Progress</p>
                 </div>
               </div>
@@ -235,7 +237,7 @@ export default function FlakyTests() {
                   <TrendingDown className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.resolved}</p>
+                  <p className="text-2xl font-bold text-foreground">{metrics?.resolvedCount}</p>
                   <p className="text-sm text-muted-foreground">Resolved</p>
                 </div>
               </div>
