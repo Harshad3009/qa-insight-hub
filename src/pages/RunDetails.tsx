@@ -234,9 +234,9 @@ export default function RunDetails() {
         </div>
 
         {/* Main Content */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 items-stretch">
           {/* Test Cases List */}
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border flex flex-col">
             <div className="p-4 border-b border-border">
               <h2 className="text-lg font-semibold text-foreground mb-4">Test Cases</h2>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -263,7 +263,7 @@ export default function RunDetails() {
               </div>
             </div>
 
-            <ScrollArea className="h-[500px]">
+            <ScrollArea className="flex-1 min-h-[500px]">
               <Accordion type="single" collapsible className="px-4">
                 {filteredTests.map((test) => (
                   <AccordionItem key={test.id} value={`test-${test.id}`} className="border-border">
@@ -309,7 +309,7 @@ export default function RunDetails() {
           </Card>
 
           {/* AI Analysis */}
-          <Card className="bg-card border-border h-fit">
+          <Card className="bg-card border-border">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">

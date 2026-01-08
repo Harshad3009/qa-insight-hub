@@ -134,11 +134,11 @@ export default function Dashboard() {
         </div>
 
         {/* Charts Row */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+          <div className="lg:col-span-2 flex">
             <TrendsChart data={trends} isLoading={isLoading} />
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 flex">
             <TopFailuresCard data={topFailures} isLoading={isLoading} />
           </div>
         </div>
