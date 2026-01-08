@@ -33,13 +33,13 @@ export function TrendsChart({ data, isLoading }: TrendsChartProps) {
   }
 
   return (
-    <Card className="p-6 bg-card border-border">
+    <Card className="p-6 bg-card border-border flex-1 flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Test Trends</h3>
         <p className="text-sm text-muted-foreground">Pass rate and failure count over time</p>
       </div>
 
-      <div className="h-[320px]">
+      <div className="flex-1 min-h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={formattedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

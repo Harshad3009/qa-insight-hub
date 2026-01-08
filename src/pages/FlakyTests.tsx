@@ -304,22 +304,22 @@ export default function FlakyTests() {
                   <CardContent className="p-4">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                       {/* Checkbox & Test Info */}
-                      <div className="flex items-start gap-4 flex-1">
+                      <div className="flex items-start gap-4 flex-1 min-w-0 overflow-hidden">
                         <Checkbox
                           checked={test.acknowledged}
                           onCheckedChange={() => handleAcknowledge(test.id)}
-                          className="mt-1"
+                          className="mt-1 shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-foreground truncate break-all">{test.testName}</h3>
+                            <h3 className="font-semibold text-foreground break-words whitespace-normal">{test.testName}</h3>
                             {test.acknowledged && (
-                              <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 text-xs">
+                              <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 text-xs shrink-0">
                                 Acknowledged
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground break-all">{test.className}</p>
+                          <p className="text-sm text-muted-foreground break-words">{test.className}</p>
                         </div>
                       </div>
 

@@ -17,7 +17,7 @@ export function TopFailuresCard({ data, isLoading }: TopFailuresCardProps) {
   }
 
   return (
-    <Card className="p-6 bg-card border-border h-[400px] flex flex-col">
+    <Card className="p-6 bg-card border-border flex-1 min-h-[400px] flex flex-col">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">Top Failures</h3>
         <p className="text-sm text-muted-foreground">Most common error messages</p>
