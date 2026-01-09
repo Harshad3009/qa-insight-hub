@@ -34,10 +34,17 @@ import {ScrollArea} from '@/components/ui/scroll-area';
 import {getRunDetails, analyzeRun, RunDetails as RunDetailsType, TestCase, AIAnalysis, deleteRun} from '@/services/api';
 import {format, parseISO} from 'date-fns';
 import {toast} from '@/hooks/use-toast';
-import {Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger} from "@radix-ui/react-dialog";
-import {DialogFooter, DialogHeader} from "@/components/ui/dialog.tsx";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import {run} from "node:test";
-import {Checkbox} from "@radix-ui/react-checkbox";
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Mock AI analysis data matching the JSON format
 const mockAIAnalysis: AIAnalysis = {
@@ -264,7 +271,7 @@ export default function RunDetails() {
 
                 {/* Run Summary */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div>
+                    <div className="space-y-1">
                         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                             Run #{runDetails.id}
                             <Badge
@@ -277,6 +284,80 @@ export default function RunDetails() {
                         <p className="text-muted-foreground mt-1">
                             Executed on {format(parseISO(runDetails.executionDate), 'MMM dd, yyyy HH:mm')}
                         </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {/* DELETE BUTTON & DIALOG */}
+                        <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
+                            setDeleteDialogOpen(open);
+                            if (!open) setDeleteAcknowledged(false);
+                            }}>
+                            <DialogTrigger asChild>
+                                <Button variant="destructive" className="gap-2 shadow-sm">
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete Run
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md border-destructive/20">
+                                <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2 text-destructive">
+                                        <AlertTriangle className="w-5 h-5" />
+                                        Delete Test Run #{runDetails.id}?
+                                    </DialogTitle>
+                                    <DialogDescription className="pt-2 text-sm text-foreground">
+                                        This action cannot be undone. This will permanently delete the test run
+                                        data and all associated test results from the database.
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                {/* Checkbox Section */}
+                                <div className="flex items-start space-x-3 py-4">
+                                    <Checkbox
+                                        id="confirm-delete"
+                                        checked={deleteAcknowledged}
+                                        onCheckedChange={(checked) => setDeleteAcknowledged(checked as boolean)}
+                                        className="mt-1" // Align with text top
+                                    />
+                                    <div className="grid gap-1.5 leading-none">
+                                        <label
+                                            htmlFor="confirm-delete"
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                        >
+                                            I understand that this action is permanent.
+                                        </label>
+                                        <p className="text-xs text-muted-foreground">
+                                            You must acknowledge this to proceed.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <DialogFooter className="gap-2 sm:justify-end">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setDeleteDialogOpen(false)}
+                                        disabled={isDeleting}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleDelete}
+                                        disabled={!deleteAcknowledged || isDeleting}
+                                        className="gap-2"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Delete Run
+                                            </>
+                                        )}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
 
