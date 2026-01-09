@@ -144,6 +144,10 @@ export const getRunDetails = async (id: number): Promise<RunDetails> => {
   return response.data;
 };
 
+export const deleteRun = async (id: number): Promise<void> => {
+    await api.delete(`/api/runs/${id}`);
+};
+
 export const analyzeRun = async (id: number): Promise<{ analysis: AIAnalysis }> => {
   const response = await api.post(`/api/runs/${id}/analyze-run`);
   return response.data;
