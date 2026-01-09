@@ -124,8 +124,8 @@ export const getTopFailures = async (limit: number = 5, days: number = 30): Prom
   return response.data;
 };
 
-export const getFlakyTests = async (days: number = 30): Promise<FlakyTestsResponse> => {
-  const response = await api.get(`/api/dashboard/flaky-tests?days=${days}`);
+export const getFlakyTests = async (days: number = 30, threshold: number = 0): Promise<FlakyTestsResponse> => {
+  const response = await api.get(`/api/dashboard/flaky-tests?days=${days}&flakyThreshold=${threshold}`);
   return response.data;
 };
 

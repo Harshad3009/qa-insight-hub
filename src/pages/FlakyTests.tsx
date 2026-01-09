@@ -6,17 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDateFilter } from '@/contexts/DateFilterContext';
-import { 
-  Bug, 
-  Search, 
-  CheckCircle2, 
-  Clock, 
-  AlertTriangle,
-  TrendingDown,
-  Filter
+import {
+    Bug,
+    Search,
+    CheckCircle2,
+    Clock,
+    AlertTriangle,
+    TrendingDown,
+    Filter, SlidersHorizontal
 } from 'lucide-react';
 import {getFlakyTests, updateFlakyTestStatus, FlakyTest, FlakyMetrics} from '@/services/api';
 import { toast } from 'sonner';
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {Separator} from '@/components/ui/separator';
+import {Label} from '@/components/ui/label';
 
 type ResolutionStatus = 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
 
@@ -51,12 +55,20 @@ export default function FlakyTests() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [acknowledgedFilter, setAcknowledgedFilter] = useState<string>('all');
+  const [threshold, setThreshold] = useState<number>(0);
+  const [inputValue, setInputValue] = useState<string>(''); // Local input state
+  const [isThresholdOpen, setIsThresholdOpen] = useState(false);
+
+  // Sync Input field when Threshold changes (e.g. via Presets)
+  useEffect(() => {
+      setInputValue(threshold > 0 ? threshold.toString() : '');
+  }, [threshold]);
 
   useEffect(() => {
     const fetchFlakyTests = async () => {
       setLoading(true);
       try {
-        const flakyTests = await getFlakyTests(daysNumber);
+        const flakyTests = await getFlakyTests(daysNumber, threshold);
         const managedTests = flakyTests.tests.map((test, index) => ({
           ...test,
           id: test.id ?? `flaky-${index}`,
@@ -74,13 +86,21 @@ export default function FlakyTests() {
           resolutionStatus: (test.resolutionStatus ?? 'unresolved') as ResolutionStatus,
         }));
         setFlakyTests(managedTests);
+        setMetrics({
+            totalFlakyTests: managedTests.length,
+            acknowledgedCount: managedTests.filter(t => t.acknowledged).length,
+            resolvedCount: managedTests.filter(t => t.resolutionStatus === 'resolved').length,
+            inProgressCount: managedTests.filter(t => t.resolutionStatus === 'in-progress').length,
+            investigatingCount: managedTests.filter(t => t.resolutionStatus === 'investigating').length,
+            unresolvedCount: managedTests.filter(t => t.resolutionStatus === 'unresolved').length
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchFlakyTests();
-  }, [daysNumber]);
+  }, [daysNumber, threshold]);
 
   const handleAcknowledge = async (id: string) => {
     const test = flakyTests.find(t => t.id === id);
@@ -138,6 +158,16 @@ export default function FlakyTests() {
     }
   };
 
+  const handleThresholdKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+          const val = Number(inputValue);
+          if (!isNaN(val) && val >= 0 && val <= 100) {
+              setThreshold(val);
+              // Optional: setIsThresholdOpen(false); // Uncomment if you want it to close on Enter
+          }
+      }
+  };
+
   const filteredTests = flakyTests.filter(test => {
     const matchesSearch = test.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           test.className.toLowerCase().includes(searchQuery.toLowerCase());
@@ -177,13 +207,86 @@ export default function FlakyTests() {
     );
   }
 
+  const presets = [25, 35, 50, 65, 70, 85];
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Flaky Tests Management</h1>
-          <p className="text-muted-foreground">Track and resolve flaky tests across your test suite</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b pb-6">
+            {/* Header */}
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Flaky Tests Management</h1>
+              <p className="text-muted-foreground">Track and resolve flaky tests across your test suite</p>
+            </div>
+            {/* Threshold Filter */}
+            <Popover open={isThresholdOpen} onOpenChange={setIsThresholdOpen}>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-[180px] justify-between shadow-sm bg-card">
+                <span className="flex items-center gap-2">
+                   <SlidersHorizontal className="w-4 h-4" />
+                   Threshold: {threshold > 0 ? `${threshold}%` : 'All'}
+                </span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4" align="end">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <h4 className="font-medium leading-none">Flakiness Threshold</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Show tests with flakiness score above:
+                            </p>
+                        </div>
+
+                        {/* Presets Grid */}
+                        <div className="grid grid-cols-3 gap-2">
+                            {presets.map((val) => (
+                                <Button
+                                    key={val}
+                                    variant={threshold === val ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                        setThreshold(val);
+                                        setIsThresholdOpen(false);
+                                    }}
+                                    className="w-full"
+                                >
+                                    {val}%
+                                </Button>
+                            ))}
+                            <Button
+                                variant={threshold === 0 ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => {
+                                    setThreshold(0);
+                                    setIsThresholdOpen(false);
+                                }}
+                                className="w-full col-span-3"
+                            >
+                                Show All (0%)
+                            </Button>
+                        </div>
+
+                        <Separator />
+
+                        {/* Custom Input */}
+                        <div className="space-y-2">
+                            <Label htmlFor="custom-threshold">Custom Threshold (%)</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="custom-threshold"
+                                    type="number"
+                                    placeholder="0-100"
+                                    min={0}
+                                    max={100}
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyDown={handleThresholdKeyDown}
+                                    className="h-9"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
         </div>
 
         {/* Stats Cards */}
