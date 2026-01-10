@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project, getProjects } from '@/services/api';
 import { toast } from 'sonner';
 import {AxiosError} from "axios";
+import {useAuth} from "@/contexts/AuthContext.tsx";
 
 interface ProjectContextType {
     projects: Project[];
@@ -13,12 +14,14 @@ interface ProjectContextType {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [currentProject, setCurrentProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const loadProjects = async () => {
+            if (!isAuthenticated) return; // Skip if not logged in
             try {
                 const data = await getProjects();
                 setProjects(data);
@@ -46,7 +49,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         };
 
         loadProjects();
-    }, []);
+    }, [isAuthenticated]);
 
     const handleSetProject = (project: Project) => {
         setCurrentProject(project);

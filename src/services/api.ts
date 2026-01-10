@@ -7,6 +7,28 @@ const api = axios.create({
   },
 });
 
+// --- Add Interceptor ---
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+// --- End Interceptor ---
+
+// --- API Types and Methods ---
+export interface LoginResponse {
+    token: string;
+    username: string;
+    role: string;
+}
+
+export interface AuthRequest {
+    username: string;
+    password: string;
+}
+
 export interface Project {
     id: number;
     name: string;
@@ -118,6 +140,17 @@ export interface TestFailure {
 export interface RunDetails extends TestRun {
   testCases: TestCase[];
 }
+
+// --- Auth Endpoints ---
+export const login = async (credentials: AuthRequest): Promise<LoginResponse> => {
+    const response = await api.post('/api/auth/login', credentials);
+    return response.data;
+};
+
+export const register = async (credentials: AuthRequest): Promise<string> => {
+    const response = await api.post('/api/auth/register', credentials);
+    return response.data;
+};
 
 // Fetch all projects
 export const getProjects = async (): Promise<Project[]> => {
