@@ -11,8 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { uploadReports } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
+import {useProject} from "@/contexts/ProjectContext.tsx";
 
 export function GlobalUploadButton() {
+  const { currentProject } = useProject();
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -50,11 +52,20 @@ export function GlobalUploadButton() {
   };
 
   const handleUpload = async () => {
+    // VALIDATION: Ensure a project is selected
+    if (!currentProject) {
+        toast({
+            title: "No Project Selected",
+            description: "Please select a project from the sidebar before uploading.",
+            variant: "destructive"
+        });
+        return;
+    }
     if (files.length === 0) return;
 
     setIsUploading(true);
     try {
-      const runIds = await uploadReports(files);
+      const runIds = await uploadReports(files, currentProject.id);
       
       toast({
         title: 'Upload successful',

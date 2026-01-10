@@ -7,6 +7,12 @@ const api = axios.create({
   },
 });
 
+export interface Project {
+    id: number;
+    name: string;
+    description: string;
+}
+
 export interface TrendData {
   date: string;
   passRate: number;
@@ -113,6 +119,13 @@ export interface RunDetails extends TestRun {
   testCases: TestCase[];
 }
 
+// Fetch all projects
+export const getProjects = async (): Promise<Project[]> => {
+    // Ensure your backend has a ProjectController exposing this endpoint
+    const response = await api.get('/api/projects');
+    return response.data;
+};
+
 // Dashboard endpoints
 export const getTrends = async (days: number = 30): Promise<TrendsResponse> => {
   const response = await api.get(`/api/dashboard/trends?days=${days}`);
@@ -176,11 +189,13 @@ export const updateFlakyTestStatus = async (
 };
 
 // Upload endpoint - supports multiple files, returns array of run IDs
-export const uploadReports = async (files: File[]): Promise<number[]> => {
+export const uploadReports = async (files: File[], projectId: number): Promise<number[]> => {
   const formData = new FormData();
   files.forEach((file) => {
     formData.append('files', file);
   });
+  // Append the projectId
+  formData.append('projectId', projectId.toString());
   const response = await api.post('/upload-report', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
