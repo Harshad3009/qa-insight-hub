@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project, getProjects } from '@/services/api';
 import { toast } from 'sonner';
+import {AxiosError} from "axios";
 
 interface ProjectContextType {
     projects: Project[];
@@ -32,6 +33,11 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
                     setCurrentProject(data[0]);
                 }
             } catch (error) {
+                if (error instanceof AxiosError && error.status==403) {
+                    console.error("Forbidden to fetch projects", error);
+                    toast.error("No valid user logged in. Please login to fetch your projects.");
+                    return;
+                }
                 console.error("Failed to load projects", error);
                 toast.error("Failed to load projects. Ensure backend is running.");
             } finally {
