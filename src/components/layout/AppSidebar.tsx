@@ -12,6 +12,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from '@/components/ui/sidebar';
+import { ProjectSwitcher } from "./ProjectSwitcher";
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -40,7 +41,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-foreground">QA Intelligence</h1>
-            <p className="text-xs text-muted-foreground">Dashboard v1.0</p>
+            <p className="text-xs text-muted-foreground">Dashboard v2.0</p>
           </div>
         </div>
       </SidebarHeader>
@@ -102,6 +103,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-sidebar-border">
+        <ProjectSwitcher />
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors cursor-pointer">
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>

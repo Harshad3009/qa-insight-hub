@@ -7,6 +7,7 @@ import { TopFailuresCard } from '@/components/dashboard/TopFailuresCard';
 import { FlakyTestsAlert } from '@/components/dashboard/FlakyTestsAlert';
 import { RunsTable } from '@/components/dashboard/RunsTable';
 import { useDateFilter } from '@/contexts/DateFilterContext';
+import { useProject } from '@/contexts/ProjectContext';
 import {
   getTrends,
   getTopFailures,
@@ -51,6 +52,7 @@ const mockRuns: TestRun[] = [
 
 export default function Dashboard() {
   const { daysNumber } = useDateFilter();
+  const { currentProject, isLoading: isProjectLoading } = useProject();
   const [trends, setTrends] = useState<TrendData[]>(mockTrends);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [topFailures, setTopFailures] = useState<TopFailure[]>(mockTopFailures);
@@ -62,10 +64,10 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const [trendsResponse, failuresData, flakyTestResponse, runsData] = await Promise.all([
-        getTrends(daysNumber),
-        getTopFailures(5, daysNumber),
-        getFlakyTests(daysNumber),
-        getRuns({ limit: 5, days: daysNumber }),
+        getTrends(daysNumber, currentProject.id),
+        getTopFailures(5, daysNumber, currentProject.id),
+        getFlakyTests(daysNumber, 0, currentProject.id),
+        getRuns({ limit: 5, days: daysNumber, projectId: currentProject.id }),
       ]);
       setTrends(trendsResponse.dailyTrends);
       setMetrics(trendsResponse.metrics)
@@ -73,15 +75,25 @@ export default function Dashboard() {
       setFlakyTests(flakyTestResponse.tests);
       setRuns(runsData);
     } catch (error) {
-      console.log('Using mock data - backend not available');
+      console.log('Using mock data - backend not available', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    // WAIT for project to be loaded
+    if (!currentProject) return;
     fetchData();
-  }, [daysNumber]);
+  }, [daysNumber, currentProject]);
+
+  if (isProjectLoading || (!currentProject && isLoading)) {
+      return (<DashboardLayout><div>Loading...</div></DashboardLayout>);
+  }
+
+  if (!currentProject) {
+      return (<DashboardLayout><div>Please select a project</div></DashboardLayout>);
+  }
 
   // Calculate metrics from trends
   const activeFailures = trends.length > 0 ? trends[trends.length - 1].failCount : 0;

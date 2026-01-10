@@ -7,6 +7,12 @@ const api = axios.create({
   },
 });
 
+export interface Project {
+    id: number;
+    name: string;
+    description: string;
+}
+
 export interface TrendData {
   date: string;
   passRate: number;
@@ -113,27 +119,35 @@ export interface RunDetails extends TestRun {
   testCases: TestCase[];
 }
 
+// Fetch all projects
+export const getProjects = async (): Promise<Project[]> => {
+    // Ensure your backend has a ProjectController exposing this endpoint
+    const response = await api.get('/api/projects');
+    return response.data;
+};
+
 // Dashboard endpoints
-export const getTrends = async (days: number = 30): Promise<TrendsResponse> => {
-  const response = await api.get(`/api/dashboard/trends?days=${days}`);
+export const getTrends = async (days: number = 30, projectId: number): Promise<TrendsResponse> => {
+  const response = await api.get(`/api/dashboard/trends?days=${days}&projectId=${projectId}`);
   return response.data;
 };
 
-export const getTopFailures = async (limit: number = 5, days: number = 30): Promise<TopFailure[]> => {
-  const response = await api.get(`/api/dashboard/top-failures?limit=${limit}&days=${days}`);
+export const getTopFailures = async (limit: number = 5, days: number = 30, projectId: number): Promise<TopFailure[]> => {
+  const response = await api.get(`/api/dashboard/top-failures?limit=${limit}&days=${days}&projectId=${projectId}`);
   return response.data;
 };
 
-export const getFlakyTests = async (days: number = 30, threshold: number = 0): Promise<FlakyTestsResponse> => {
-  const response = await api.get(`/api/dashboard/flaky-tests?days=${days}&flakyThreshold=${threshold}`);
+export const getFlakyTests = async (days: number = 30, threshold: number = 0, projectId: number): Promise<FlakyTestsResponse> => {
+  const response = await api.get(`/api/dashboard/flaky-tests?days=${days}&flakyThreshold=${threshold}&projectId=${projectId}`);
   return response.data;
 };
 
 // Runs endpoints
-export const getRuns = async (params?: { limit?: number; days?: number }): Promise<TestRun[]> => {
+export const getRuns = async (params?: { limit?: number; days?: number; projectId: number }): Promise<TestRun[]> => {
   const queryParams = new URLSearchParams();
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.days) queryParams.append('days', params.days.toString());
+  queryParams.append('projectId', params.projectId.toString());
   const queryString = queryParams.toString();
   const response = await api.get(`/api/runs${queryString ? `?${queryString}` : ''}`);
   return response.data;
@@ -154,8 +168,8 @@ export const analyzeRun = async (id: number): Promise<{ analysis: AIAnalysis }> 
 };
 
 // Trends endpoints
-export const getFailurePatterns = async (days: number = 30): Promise<FailurePattern[]> => {
-    const response = await api.get(`/api/dashboard/failure-patterns?days=${days}`);
+export const getFailurePatterns = async (days: number = 30, projectId: number): Promise<FailurePattern[]> => {
+    const response = await api.get(`/api/dashboard/failure-patterns?days=${days}&projectId=${projectId}`);
     return response.data;
 };
 
@@ -176,11 +190,13 @@ export const updateFlakyTestStatus = async (
 };
 
 // Upload endpoint - supports multiple files, returns array of run IDs
-export const uploadReports = async (files: File[]): Promise<number[]> => {
+export const uploadReports = async (files: File[], projectId: number): Promise<number[]> => {
   const formData = new FormData();
   files.forEach((file) => {
     formData.append('files', file);
   });
+  // Append the projectId
+  formData.append('projectId', projectId.toString());
   const response = await api.post('/upload-report', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

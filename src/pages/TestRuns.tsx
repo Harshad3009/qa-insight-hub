@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { RunsTable } from '@/components/dashboard/RunsTable';
 import { useDateFilter } from '@/contexts/DateFilterContext';
+import { useProject } from '@/contexts/ProjectContext';
 import { getRuns, TestRun } from '@/services/api';
 
 // Mock data for preview
@@ -17,14 +18,16 @@ const mockRuns: TestRun[] = [
 
 export default function TestRuns() {
   const { daysNumber } = useDateFilter();
+  const { currentProject } = useProject();
   const [runs, setRuns] = useState<TestRun[]>(mockRuns);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (!currentProject) return;
     const fetchRuns = async () => {
       setIsLoading(true);
       try {
-        const data = await getRuns({ days: daysNumber });
+        const data = await getRuns({ days: daysNumber, projectId: currentProject.id });
         setRuns(data);
       } catch (error) {
         console.log('Using mock data - backend not available');
@@ -34,7 +37,7 @@ export default function TestRuns() {
       }
     };
     fetchRuns();
-  }, [daysNumber]);
+  }, [daysNumber, currentProject]);
 
   return (
     <DashboardLayout>

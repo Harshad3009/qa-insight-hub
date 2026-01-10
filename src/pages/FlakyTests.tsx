@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useDateFilter } from '@/contexts/DateFilterContext';
+import { useProject } from '@/contexts/ProjectContext';
 import {
     Bug,
     Search,
@@ -49,6 +50,7 @@ const statusConfig: Record<ResolutionStatus, { label: string; color: string; ico
 
 export default function FlakyTests() {
   const { daysNumber } = useDateFilter();
+  const { currentProject } = useProject();
   const [flakyTests, setFlakyTests] = useState<ManagedFlakyTest[]>([]);
   const [metrics, setMetrics] = useState<FlakyMetrics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,10 +67,11 @@ export default function FlakyTests() {
   }, [threshold]);
 
   useEffect(() => {
+    if (!currentProject) return;
     const fetchFlakyTests = async () => {
       setLoading(true);
       try {
-        const flakyTests = await getFlakyTests(daysNumber, threshold);
+        const flakyTests = await getFlakyTests(daysNumber, threshold, currentProject.id);
         const managedTests = flakyTests.tests.map((test, index) => ({
           ...test,
           id: test.id ?? `flaky-${index}`,
@@ -100,7 +103,7 @@ export default function FlakyTests() {
     };
 
     fetchFlakyTests();
-  }, [daysNumber, threshold]);
+  }, [daysNumber, threshold, currentProject]);
 
   const handleAcknowledge = async (id: string) => {
     const test = flakyTests.find(t => t.id === id);

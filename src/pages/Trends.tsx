@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {getTrends, getFailurePatterns, TrendData, FailurePattern, DashboardMetrics} from "@/services/api";
 import { useDateFilter } from "@/contexts/DateFilterContext";
+import { useProject } from '@/contexts/ProjectContext';
 import { TrendingUp, TrendingDown, Clock, BarChart3, Activity } from "lucide-react";
 import {
   LineChart,
@@ -49,31 +50,33 @@ const generateMockFailurePatterns = (): FailurePattern[] => [
 
 export default function Trends() {
   const { daysNumber } = useDateFilter();
+  const { currentProject } = useProject();
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [failurePatterns, setFailurePatterns] = useState<FailurePattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentProject) return;
     const fetchData = async () => {
       setIsLoading(true);
       try {
         const [trendsResponse, patterns] = await Promise.all([
-          getTrends(daysNumber),
-          getFailurePatterns(daysNumber),
+          getTrends(daysNumber, currentProject.id),
+          getFailurePatterns(daysNumber, currentProject.id),
         ]);
         setTrendsData(trendsResponse.dailyTrends);
         setFailurePatterns(patterns);
         setMetrics(trendsResponse.metrics)
       } catch (error) {
-        console.log("Using mock data - backend not available");
+        console.log("Using mock data - backend not available", error);
         setTrendsData(generateMockTrendData(daysNumber));
         setFailurePatterns(generateMockFailurePatterns());
       }
       setIsLoading(false);
     };
     fetchData();
-  }, [daysNumber]);
+  }, [daysNumber, currentProject]);
 
   const formattedTrends = trendsData.map((item) => ({
     ...item,
