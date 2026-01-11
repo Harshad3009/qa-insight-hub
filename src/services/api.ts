@@ -7,6 +7,28 @@ const api = axios.create({
   },
 });
 
+// --- Add Interceptor ---
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+// --- End Interceptor ---
+
+// --- API Types and Methods ---
+export interface LoginResponse {
+    token: string;
+    username: string;
+    role: string;
+}
+
+export interface AuthRequest {
+    username: string;
+    password: string;
+}
+
 export interface Project {
     id: number;
     name: string;
@@ -53,6 +75,7 @@ export interface FlakyTest {
   // Management Fields
   acknowledged?: boolean;
   resolutionStatus?: 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
+  assignee?: string;
 }
 
 export interface FlakyMetrics {
@@ -119,6 +142,23 @@ export interface RunDetails extends TestRun {
   testCases: TestCase[];
 }
 
+// --- Auth Endpoints ---
+export const login = async (credentials: AuthRequest): Promise<LoginResponse> => {
+    const response = await api.post('/api/auth/login', credentials);
+    return response.data;
+};
+
+export const register = async (credentials: AuthRequest): Promise<string> => {
+    const response = await api.post('/api/auth/register', credentials);
+    return response.data;
+};
+
+// Get all users
+export const getUsers = async (): Promise<string[]> => {
+    const response = await api.get('/api/users');
+    return response.data;
+};
+
 // Fetch all projects
 export const getProjects = async (): Promise<Project[]> => {
     // Ensure your backend has a ProjectController exposing this endpoint
@@ -178,13 +218,15 @@ export const updateFlakyTestStatus = async (
     className: string,
     testName: string,
     acknowledged: boolean,
-    resolutionStatus: string
+    resolutionStatus: string,
+    assignee?: string
 ) => {
     const response = await api.post('/api/dashboard/flaky-tests/update', {
         className,
         testName,
         acknowledged,
-        resolutionStatus
+        resolutionStatus,
+        assignee
     });
     return response.data;
 };

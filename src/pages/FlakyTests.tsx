@@ -14,14 +14,15 @@ import {
     Clock,
     AlertTriangle,
     TrendingDown,
-    Filter, SlidersHorizontal
+    Filter, SlidersHorizontal, UserIcon
 } from 'lucide-react';
-import {getFlakyTests, updateFlakyTestStatus, FlakyTest, FlakyMetrics} from '@/services/api';
+import {getFlakyTests, updateFlakyTestStatus, FlakyTest, FlakyMetrics, getUsers} from '@/services/api';
 import { toast } from 'sonner';
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Separator} from '@/components/ui/separator';
 import {Label} from '@/components/ui/label';
+import {useAuth} from "@/contexts/AuthContext";
 
 type ResolutionStatus = 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
 
@@ -49,6 +50,8 @@ const statusConfig: Record<ResolutionStatus, { label: string; color: string; ico
 };
 
 export default function FlakyTests() {
+  const { user } = useAuth(); // Get current logged in user
+  const [usersList, setUsersList] = useState<string[]>([]);
   const { daysNumber } = useDateFilter();
   const { currentProject } = useProject();
   const [flakyTests, setFlakyTests] = useState<ManagedFlakyTest[]>([]);
@@ -60,6 +63,19 @@ export default function FlakyTests() {
   const [threshold, setThreshold] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>(''); // Local input state
   const [isThresholdOpen, setIsThresholdOpen] = useState(false);
+
+  // Fetch Users on Load
+  useEffect(() => {
+      const fetchUsers = async () => {
+          try {
+              const data = await getUsers();
+              setUsersList(data);
+          } catch (e) {
+              console.error("Failed to load users");
+          }
+      };
+      fetchUsers();
+  }, []);
 
   // Sync Input field when Threshold changes (e.g. via Presets)
   useEffect(() => {
@@ -170,6 +186,39 @@ export default function FlakyTests() {
           }
       }
   };
+
+    const handleAssigneeChange = async (id: string, newAssignee: string) => {
+        const test = flakyTests.find(t => t.id === id);
+        if (!test) return;
+
+        // Optimistic Update
+        setFlakyTests(prev => prev.map(t =>
+            t.id === id ? { ...t, assignee: newAssignee } : t
+        ));
+
+        try {
+            await updateFlakyTestStatus(
+                test.className,
+                test.testName,
+                test.acknowledged,
+                test.resolutionStatus,
+                newAssignee
+            );
+            toast.success(`Assigned to ${newAssignee}`);
+        } catch (error) {
+            // Revert
+            setFlakyTests(prev => prev.map(t =>
+                t.id === id ? { ...t, assignee: test.assignee } : t
+            ));
+            toast.error('Failed to assign test. Check permissions.');
+        }
+    };
+
+    // Helper to determine if assignment is allowed
+    const canAssignTo = (targetUser: string) => {
+        if (user?.role === 'MANAGER') return true;
+        return targetUser === user?.username; // Engineers can only pick themselves
+    };
 
   const filteredTests = flakyTests.filter(test => {
     const matchesSearch = test.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -483,6 +532,30 @@ export default function FlakyTests() {
                           </SelectContent>
                         </Select>
                       </div>
+                        <div className="flex items-center gap-2">
+                            <UserIcon className="w-4 h-4 text-muted-foreground" />
+                            <Select
+                                value={test.assignee || "unassigned"}
+                                onValueChange={(val) => handleAssigneeChange(test.id, val)}
+                                disabled={user?.role !== 'MANAGER' && test.assignee && test.assignee !== user?.username}
+                            >
+                                <SelectTrigger className="w-[140px] bg-background/50 border-border h-8 text-xs">
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                    {usersList.map(u => (
+                                        <SelectItem
+                                            key={u}
+                                            value={u}
+                                            disabled={!canAssignTo(u)} // Disable invalid options for Engineers
+                                        >
+                                            {u} {u === user?.username ? '(Me)' : ''}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                   </CardContent>
                 </Card>
