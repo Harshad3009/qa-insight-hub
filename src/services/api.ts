@@ -75,6 +75,7 @@ export interface FlakyTest {
   // Management Fields
   acknowledged?: boolean;
   resolutionStatus?: 'unresolved' | 'investigating' | 'in-progress' | 'resolved';
+  assignee?: string;
 }
 
 export interface FlakyMetrics {
@@ -152,6 +153,12 @@ export const register = async (credentials: AuthRequest): Promise<string> => {
     return response.data;
 };
 
+// Get all users
+export const getUsers = async (): Promise<string[]> => {
+    const response = await api.get('/api/users');
+    return response.data;
+};
+
 // Fetch all projects
 export const getProjects = async (): Promise<Project[]> => {
     // Ensure your backend has a ProjectController exposing this endpoint
@@ -211,13 +218,15 @@ export const updateFlakyTestStatus = async (
     className: string,
     testName: string,
     acknowledged: boolean,
-    resolutionStatus: string
+    resolutionStatus: string,
+    assignee?: string
 ) => {
     const response = await api.post('/api/dashboard/flaky-tests/update', {
         className,
         testName,
         acknowledged,
-        resolutionStatus
+        resolutionStatus,
+        assignee
     });
     return response.data;
 };
