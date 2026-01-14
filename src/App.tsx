@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import {ProjectProvider} from "@/contexts/ProjectContext.tsx";
 import {AuthProvider, useAuth} from "@/contexts/AuthContext";
 import Login from "@/pages/Login.tsx";
+import Settings from "./pages/Settings";
 import Dashboard from "@/pages/Dashboard.tsx";
 import {Loader2} from "lucide-react";
 
@@ -64,6 +65,7 @@ const App = () => (
                                                element={<ProtectedRoute><RunDetails/></ProtectedRoute>}/>
                                         <Route path="/trends" element={<ProtectedRoute><Trends/></ProtectedRoute>}/>
                                         <Route path="/flaky" element={<ProtectedRoute><FlakyTests/></ProtectedRoute>}/>
+                                        <Route path="/settings" element={<ProtectedRoute><Settings/></ProtectedRoute>}/>
 
                                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                                         <Route path="*" element={<NotFound/>}/>

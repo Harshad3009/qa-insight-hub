@@ -35,6 +35,14 @@ export interface Project {
     description: string;
 }
 
+export interface ApiKey {
+    id: number;
+    name: string;
+    secretKey: string;
+    createdAt: string;
+    lastUsedAt?: string;
+}
+
 export interface TrendData {
   date: string;
   passRate: number;
@@ -151,6 +159,20 @@ export const login = async (credentials: AuthRequest): Promise<LoginResponse> =>
 export const register = async (credentials: AuthRequest): Promise<string> => {
     const response = await api.post('/api/auth/register', credentials);
     return response.data;
+};
+
+export const getProjectKeys = async (projectId: number): Promise<ApiKey[]> => {
+    const response = await api.get(`/api/projects/${projectId}/keys`);
+    return response.data;
+};
+
+export const generateApiKey = async (projectId: number, name: string): Promise<ApiKey> => {
+    const response = await api.post(`/api/projects/${projectId}/keys`, { name });
+    return response.data;
+};
+
+export const revokeApiKey = async (keyId: number): Promise<void> => {
+    await api.delete(`/api/projects/keys/${keyId}`);
 };
 
 // Get all users
