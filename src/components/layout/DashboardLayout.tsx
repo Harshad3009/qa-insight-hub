@@ -3,6 +3,7 @@ import { AppSidebar } from './AppSidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalDateFilter } from './GlobalDateFilter';
 import { GlobalUploadButton } from './GlobalUploadButton';
+import {RealTimeListener} from "@/components/layout/RealTimeListener.tsx";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card/30 backdrop-blur-sm sticky top-0 z-10">
           <SidebarTrigger />
           <div className="flex items-center gap-3">
+            <RealTimeListener />
             <GlobalUploadButton />
             <GlobalDateFilter />
             <ThemeToggle />
