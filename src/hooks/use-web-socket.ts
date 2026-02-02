@@ -22,18 +22,24 @@ export function useWebSocket(onMessage: MessageHandler) {
         // 1. If no project selected, don't connect
         if (!currentProject) return;
 
-        // 2. Initialize Client
+        // 2. Get the API URL from environment (or default to localhost)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+        // 3. Convert http -> ws and https -> wss AND append /ws/websocket (Standard SockJS path)
+        const brokerUrl = apiUrl.replace(/^http/, 'ws') + '/ws/websocket';
+
+        // 4. Initialize Client
         // We use the standard WebSocket URL.
         // Note: Since we used .withSockJS() in backend, the raw websocket path is usually /ws/websocket
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws/websocket',
+            brokerURL: brokerUrl,
             reconnectDelay: 5000, // Auto reconnect
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             onConnect: () => {
                 console.log('Connected to WebSocket');
 
-                // 3. Subscribe to Project Topic
+                // 5. Subscribe to Project Topic
                 // Backend sends to: /topic/project/{id}/runs
                 const topic = `/topic/project/${currentProject.id}/runs`;
 
@@ -52,11 +58,11 @@ export function useWebSocket(onMessage: MessageHandler) {
             },
         });
 
-        // 4. Activate
+        // 6. Activate
         client.activate();
         clientRef.current = client;
 
-        // 5. Cleanup on unmount or project change
+        // 7. Cleanup on unmount or project change
         return () => {
             if (clientRef.current) {
                 clientRef.current.deactivate();
